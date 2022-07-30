@@ -34,7 +34,7 @@ When you edit a note, each line of the document **will be parsed as a separate n
 
 It started with a todo script.
 I needed a tool which would enable me to make a quick note and push it into a private github repository in a timely fashion, that means with no more than 3 keystrokes.
-The set of requirements which I came up with was very short: simple navigation among entries, possibliity to edit them (and fast), date/time-related functionality which would let me see time before deadlines (if there are any), and basic search capabilities.
+The set of requirements which I came up with was very short: git-based synchronization, simple navigation among entries, possibliity to edit them (and fast), date/time-related functionality which would let me see time before deadlines (if there are any), and basic search capabilities.
 
 No project folders, mouse clicks, registration forms, gui, vaults, or relations between notes.
 And if I ever needed something that would resemble the latter, I would create a special naming scheme and get it seamlessly vowen into my workflow.
