@@ -35,4 +35,5 @@ Without these libraries this application would not be dead-simple:
 - [simple_term_menu](https://pypi.org/project/simple-term-menu/) is an outstanding library for creating command line-based user interfaces;
 - [python-dateutil](https://pypi.org/project/python-dateutil/) is a great library for parsing structured dates;
 - Beautiful [tabulate](https://pypi.org/project/tabulate/) library enables you to create neat and tidy tables in command line;
+- Mindblowing [colorama](https://pypi.org/project/colorama/) to get colored input;
 - Last, but not least [parsedatetime](https://pypi.org/project/parsedatetime/) allows one to parse unstructured dates from a text;
