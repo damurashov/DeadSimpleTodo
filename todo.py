@@ -224,9 +224,10 @@ class Cli:
 
     def print_help():
         print(tabulate.tabulate([
-            ["", "Show list of tasks"],
-            ["f ..", "Filter tasks (case-sensitive)"],
             ["?", "Show this help message"],
+            ["NONE", "Show list of tasks"],
+            ["f ..", "Filter tasks (case-insensitive)"],
+            ["F ..", "Filter tasks (case-sensitive)"],
             ["h ..", "Use  JSON from the current directory"],
             ["a ..", "Add"],
             ["e", "Edit in an external terminal editor \n(vim by default, tweak the source \nfile to replace)"],
@@ -270,10 +271,11 @@ def main():
             task = task.strip()
             if len(task):
                 q.add(task)
-        elif sys.argv[1] == 'f':  # filter
+        elif sys.argv[1].lower() == 'f':  # filter
+            case_cb = lambda f: f if sys.argv[1].isupper() else f.lower()
             out = str(q)
             out = out.split('\n')
-            out = [o for o in out if sys.argv[2] in o]
+            out = [o for o in out if case_cb(sys.argv[2]) in case_cb(o)]
             print('\n'.join(out))
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
