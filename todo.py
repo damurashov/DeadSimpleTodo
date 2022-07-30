@@ -242,8 +242,6 @@ class Cli:
 
 
 def main():
-    # os.system("cd ~/scripts; git fetch origin; git merge origin/master")
-
     if len(sys.argv) > 1:
         from_here = 'h' == sys.argv[1].strip()
 
@@ -285,7 +283,6 @@ def main():
         print(q)
 
     q.save(from_here)
-    # os.system("cd ~/scripts; ./fastpush.sh")
 
 
 if __name__ == "__main__":
