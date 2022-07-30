@@ -48,7 +48,6 @@ class Color:
 
     @staticmethod
     def colorize(text: str):
-        print(text)
         for rule, formatter in Color.RULES:
             chunks = []
             pos_last = 0
