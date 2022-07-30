@@ -6,6 +6,8 @@ DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent
 
 # Features
 
+Despite being dead-simple, it has aces in its sleeve.
+
 - Parsing of both structured and unstructured date / time phrases (like "07-02", "14:02", "tomorrow", "in 2 hours", "by 3 a.m.";
 - Entry sorting: those that have deadlines attached to them will be pushed up in the list; the other ones will be sorted in lexicographical order;
 - Frictionless command line navigation;
@@ -14,7 +16,7 @@ DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent
 
 # Implied workflow (for "lin" users)
 
-When used with git, it becomes a very powerful note / reminder tool with synchronization capabilities.
+In combination with `git`, it becomes a very powerful notetaking / reminder application with synchronization capabilities.
  
 - Fork this repo, change the fork's visibility to "private", clone it; 
 - Add the repo's directory into your `$PATH`;
