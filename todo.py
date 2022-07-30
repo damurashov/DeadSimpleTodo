@@ -251,6 +251,10 @@ class Cli:
     @staticmethod
     def list_select(items, title):
         item_id = TerminalMenu(items, title=title).show()
+
+        if item_id is None:
+            return None
+
         item = items[item_id]
 
         return item
@@ -258,6 +262,10 @@ class Cli:
     @staticmethod
     def list_select_multi(items, title):
         item_ids = TerminalMenu(items, title=title, multi_select=True).show()
+
+        if item_ids is None:
+            return []
+
         selected = [items[i] for i in item_ids]
 
         return selected
@@ -281,6 +289,9 @@ class Cli:
 
     def list_edit(list, title):
         item = Cli.list_select(list, title=title)
+
+        if item is None:
+            return None, None
 
         with open(".todotempedit", 'w') as f:
             f.write(item)
@@ -332,7 +343,9 @@ def main():
                 q.clear_done()
         elif sys.argv[1] == 'e':
             item, items = Cli.list_edit(q.get_todo(), "Select an item to edit")
-            q.item_edit(item, *items)
+
+            if item is not None:
+                q.item_edit(item, *items)
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
