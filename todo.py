@@ -30,7 +30,6 @@ class Color:
 
     RULES = [
         [r"IMPORTANT", colorama.Back.YELLOW],
-        [r"LONGTERM", colorama.Fore.BLUE],
         [r"(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", colorama.Fore.BLUE]
     ]
 
