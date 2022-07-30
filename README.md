@@ -26,7 +26,7 @@ When you edit a note, each line of the document **will be parsed as a separate n
 
 # Acknowledgements 
 
-Without this libraries this application would not be dead-simple:
+Without these libraries this application would not be dead-simple:
 
 - [simple_term_menu](https://pypi.org/project/simple-term-menu/) is an outstanding library for creating command line-based user interfaces;
 - [python-dateutil](https://pypi.org/project/python-dateutil/) is a great library for parsing structured dates;
