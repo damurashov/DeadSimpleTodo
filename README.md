@@ -14,7 +14,9 @@ DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent
 
 # Implied workflow (for "lin" users)
 
-- Fork this repo, change the fork's visibility to "private", clone it;
+When used with git, it becomes a very powerful note / reminder tool with synchronization capabilities.
+ 
+- Fork this repo, change the fork's visibility to "private", clone it; 
 - Add the repo's directory into your `$PATH`;
 - Whenever you need it, use `todo.py` and `todoupdate.sh` to synchronize your todo-s;
 
