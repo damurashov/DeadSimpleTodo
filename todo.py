@@ -227,10 +227,10 @@ class Cli:
             ["?", "Show this help message"],
             ["h ..", "Use  JSON from the current directory"],
             ["a ..", "Add"],
-            ["e", "Edit in an external terminal editor \n(vim by default, tweak the source file to \nreplace)"],
+            ["e", "Edit in an external terminal editor \n(vim by default, tweak the source \nfile to replace)"],
             ["d", "Do. Mark tasks as done"],
             ["u", "Undo. Mark tasks as undone"],
-            ["cd", "Clear done backlog"],
+            ["cd", "Clear DONE backlog"],
             ], tablefmt="fancy_grid"))
 
     def list_edit(list, title):
