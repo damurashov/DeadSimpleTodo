@@ -1,8 +1,8 @@
 # DeadSimpleTodo
 
-![Demo](res/demo.gif)
-
 DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent terminal user, it will give you a frictionless experience like the one it gives to me.
+
+![Demo](res/demo.gif)
 
 # Features
 
