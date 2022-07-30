@@ -10,6 +10,7 @@ import datetime
 from parsedatetime import Calendar
 import json
 from dateutil.parser import parse as date_parse
+import tabulate
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -222,7 +223,15 @@ class Cli:
         return bool(TerminalMenu(['[n] No', '[y] Yes'], title=title).show())
 
     def print_help():
-        print("a - add, u - undo, d - do, cd - clear done, e - edit TODO")
+        print(tabulate.tabulate([
+            ["?", "Show this help message"],
+            ["h ..", "Use  JSON from the current directory"],
+            ["a ..", "Add"],
+            ["e", "Edit in an external terminal editor \n(vim by default, tweak the source file to \nreplace)"],
+            ["d", "Do. Mark tasks as done"],
+            ["u", "Undo. Mark tasks as undone"],
+            ["cd", "Clear done backlog"],
+            ], tablefmt="fancy_grid"))
 
     def list_edit(list, title):
         item = Cli.list_select(list, title=title)
