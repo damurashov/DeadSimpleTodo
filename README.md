@@ -20,7 +20,7 @@ DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent
 
 # Usage recommendations
 
-**Devise your own naming scheme**. For example, prefix your notes with an uppercase TAGS to take advantage of the entry sorting and filtering features. Like this: "WORK - claim the usb hub back".
+**Devise your own naming scheme**. For example, prefix your notes with uppercase TAGS to take advantage of the entry sorting and filtering features. Like this: "WORK - claim the usb hub back".
 
 When you edit a note, each line of the document **will be parsed as a separate note**. Use this feature when you need to split a note into two;
 
