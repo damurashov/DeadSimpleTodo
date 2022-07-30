@@ -13,7 +13,7 @@ Despite being dead-simple, it has aces in its sleeve.
 - Frictionless command line navigation;
 - Time before deadline;
 - Entry filtering;
-- Colored output to highlight chunks w/. You can easily tweak the set of regex rules by which a color is selected;
+- Colored output. You can easily tweak the set of regex rules by which a color is selected. Besides colors, you can add any formatter;
 
 # Implied workflow (for "lin" users)
 
