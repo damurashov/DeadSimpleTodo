@@ -9,7 +9,8 @@ DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent
 - Parsing of both structured and unstructured date / time phrases (like "07-02", "14:02", "tomorrow", "in 2 hours", "by 3 a.m.";
 - Entry sorting: those that have deadlines attached to them will be pushed up in the list; the other ones will be sorted in lexicographical order;
 - Frictionless command line navigation;
-- Displaying time remaining before deadline.
+- Time before deadline;
+- Entry filtering;
 
 # Implied workflow (for "lin" users)
 
@@ -17,7 +18,13 @@ DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent
 - Add the local copy's directory into your `$PATH`;
 - Whenever you need it, use `todo.py` and `todoupdate.sh` to synchronize your todo-s;
 
-# Acknowledgements
+# Usage recommendations
+
+**Devise your own naming scheme**. For example, prefix your notes with an uppercase TAGS to take advantage of the entry sorting and filtering features. Like this: "WORK - claim the usb hub back".
+
+When you edit a note, each line of the document **will be parsed as a separate note**. Use it when you need to split a note into two;
+
+# Acknowledgements 
 
 Without this libraries this application would not be dead-simple:
 
