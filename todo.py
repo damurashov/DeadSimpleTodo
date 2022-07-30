@@ -60,27 +60,6 @@ class DateTime:
         else:
             formatted = "in %s" % formatted
 
-@dataclass
-class TaskInfo:
-
-    task: str
-    modified: str = field(default_factory=DateTime.get_datetime)
-    deadline: object = field(default_factory=object)
-
-    def __post_init__(self):
-        self.deadline = DateTime.parse_datetime(self.task)
-
-    def __str__(self):
-        ret = ""
-
-        if self.deadline:
-            ret += '(by ' + datetime.datetime.strftime(self.deadline, TIME_FORMAT) + ') '
-            pass
-
-        ret += self.task
-
-        return ret
-
 
 @dataclass
 class Queue:
