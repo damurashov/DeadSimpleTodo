@@ -28,15 +28,20 @@ def list_remove_item(l, item):
 
 class Color:
 
+    @staticmethod
+    def _colorize_impl(text, *colors):
+        return "".join(colors) + text + colorama.Style.RESET_ALL
+
+    # This set of rules may be extended w/ any formatting code whatsoever
     RULES = [
-        [r"IMPORTANT", colorama.Back.YELLOW],
-        [r"(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", colorama.Fore.BLUE]
+        [r"IMPORTANT", lambda text: Color._colorize_impl(text, colorama.Back.YELLOW)],
+        [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color._colorize_impl(text, colorama.Fore.BLUE)]
     ]
 
     @staticmethod
-    def _chunk_append(chunks, text, pos_last, pos_from, pos_to, *colors):
+    def _chunk_append(chunks, text, pos_last, pos_from, pos_to, formatter):
         chunk_before = text[pos_last:pos_from]
-        chunk_range = "".join(colors) + text[pos_from : pos_to] + colorama.Style.RESET_ALL
+        chunk_range = formatter(text[pos_from : pos_to])
         chunks += [chunk_before, chunk_range]
 
         return chunks
@@ -44,12 +49,12 @@ class Color:
     @staticmethod
     def colorize(text: str):
         print(text)
-        for rule, *colors in Color.RULES:
+        for rule, formatter in Color.RULES:
             chunks = []
             pos_last = 0
 
             for m in re.finditer(rule, text):
-                chunks = Color._chunk_append(chunks, text, pos_last, *m.span(0), *colors)
+                chunks = Color._chunk_append(chunks, text, pos_last, *m.span(0), formatter)
                 pos_last = m.span(0)[1]
 
             if 0 < pos_last:
