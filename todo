@@ -83,12 +83,20 @@ class Queue:
                 "info": dict(),
             })
 
+    def _task_get_deadline(self, task):
+        if task not in self.tasks["info"]:
+            return None
+
+        if "due" not in self.tasks["info"][task]:
+            return None
+
+        return self.tasks["info"][task]["due"]
+
     def sort(self):
         self.tasks["todo"].sort()
 
         # Partition the list of tasks based on whether a task has a deadline
-        tasks_deadline = list(filter(lambda t: t in self.tasks["info"], self.tasks["todo"]))
-        tasks_deadline = list(filter(lambda t: "due" in self.tasks["info"][t], tasks_deadline))
+        tasks_deadline = list(filter(lambda t: self._task_get_deadline(t) is not None, self.tasks["todo"]))
         tasks_no_deadline = list(filter(lambda t: t not in tasks_deadline, self.tasks["todo"]))
         self.tasks["todo"] = tasks_deadline + tasks_no_deadline
 
