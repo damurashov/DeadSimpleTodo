@@ -1,16 +1,15 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 
-from multiprocessing.sharedctypes import Value
 import sys
 import os
 from simple_term_menu import TerminalMenu
-import pickle
 from pathlib import Path
 from dataclasses import dataclass, field
 import datetime
 from parsedatetime import Calendar
 import json
+from dateutil.parser import parse as date_parse
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -98,6 +97,7 @@ class Queue:
         # Partition the list of tasks based on whether a task has a deadline
         tasks_deadline = list(filter(lambda t: self._task_get_deadline(t) is not None, self.tasks["todo"]))
         tasks_no_deadline = list(filter(lambda t: t not in tasks_deadline, self.tasks["todo"]))
+        tasks_deadline.sort(key=lambda t: date_parse(self._task_get_deadline(t)))
         self.tasks["todo"] = tasks_deadline + tasks_no_deadline
 
     def save(self, here=False):
