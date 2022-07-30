@@ -15,7 +15,10 @@ Despite being dead-simple, it has aces in its sleeve.
 - Entry filtering;
 - Colored 🟧 output. You can easily tweak the set of regex rules by which a color is selected. Besides colors, you can add any formatter;
 
-# Implied workflow (for "lin" users)
+
+# Usage recommendations
+
+## Implied workflow (for "lin" users)
 
 In combination with `git`, it becomes a very powerful notetaking / reminder application with synchronization capabilities.
 
@@ -23,8 +26,7 @@ In combination with `git`, it becomes a very powerful notetaking / reminder appl
 - Add the repo's directory into your `$PATH`;
 - Whenever you need it, use `todo.py` and `todoupdate.sh` to synchronize your todo-s;
 
-
-# Usage recommendations
+## Other
 
 **Devise your own naming scheme**. For example, prefix your notes with uppercase TAGS to take advantage of the entry sorting and filtering features. Like this: "WORK - claim the usb hub back".
 
