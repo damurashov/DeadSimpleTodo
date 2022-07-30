@@ -40,7 +40,7 @@ No project folders, mouse clicks, registration forms, GUI, vaults, or relations 
 And if I ever needed something that would resemble the latter, I would create a special naming scheme and get it seamlessly vowen into my workflow.
 After all, it is my computer that has to help me with my day-to-day errands, not me helping some relation-oriented data structure to understand intricate links between my notes.
 
-After a series of incremental iterations, I discovered that my script had become a full-fledged terminal todo application, and it checks every mark I wanted it to check.
+After a series of incremental enhancements, I discovered that my script had become a full-fledged terminal todo application, and it checks every mark I wanted it to check.
 Simple and practical, just as it was intended.
 
 # Requirements
