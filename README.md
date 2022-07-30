@@ -42,7 +42,11 @@ After all, it is my computer that has to help me with my day-to-day errands, not
 
 After a series of incremental iterations, I discovered that my script had become a full-fledged terminal todo application, and it checks every mark I wanted it to check.
 
-# Acknowledgements
+# Requirements
+
+Besiders those listed in `requirements.txt`, it uses `vim` for note editing. See `todo.py`.
+
+# Acknowledgements 
 
 Without these libraries this application would not be dead-simple:
 
