@@ -13,13 +13,13 @@ Despite being dead-simple, it has aces in its sleeve.
 - Frictionless command line navigation;
 - Time before deadline;
 - Entry filtering;
-- Colored output. You can easily tweak the set of regex rules by which a color is selected. Besides colors, you can add any formatter;
+- Colored 🟧 output. You can easily tweak the set of regex rules by which a color is selected. Besides colors, you can add any formatter;
 
 # Implied workflow (for "lin" users)
 
 In combination with `git`, it becomes a very powerful notetaking / reminder application with synchronization capabilities.
- 
-- Fork this repo, change the fork's visibility to "private", clone it; 
+
+- Fork this repo, change the fork's visibility to "private", clone it;
 - Add the repo's directory into your `$PATH`;
 - Whenever you need it, use `todo.py` and `todoupdate.sh` to synchronize your todo-s;
 
@@ -29,7 +29,7 @@ In combination with `git`, it becomes a very powerful notetaking / reminder appl
 
 When you edit a note, each line of the document **will be parsed as a separate note**. Use this feature when you need to split a note into two;
 
-# Acknowledgements 
+# Acknowledgements
 
 Without these libraries this application would not be dead-simple:
 
