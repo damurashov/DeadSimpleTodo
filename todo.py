@@ -36,6 +36,29 @@ class DateTime:
         if status:
             return datetime.datetime(*date[:6])
 
+    @staticmethod
+    def deadline_format_remaining(deadline: str):
+        delta = date_parse(deadline) - datetime.datetime.now()
+        expired = delta.total_seconds() < 0
+        delta = datetime.timedelta(seconds=abs(delta.total_seconds()))
+        resoultion_mapping = [
+            (datetime.timedelta(weeks=8), lambda d: "%d months" % int(d.weeks / 4)),
+            (datetime.timedelta(weeks=2), lambda d: "%d weeks" % int(d.weeks)),
+            (datetime.timedelta(days=2), lambda d: "%d days" % int(d.days)),
+            (datetime.timedelta(hours=2), lambda d: "%d hours" % int(d.total_seconds() / 3600)),
+            (datetime.timedelta(seconds=-1), lambda d: "%d minutes" % int(d.total_seconds() /  60)),
+        ]
+        formatted = ""
+
+        for threshold, formatter in resoultion_mapping:
+            if delta > threshold:
+                formatted = formatter(delta)
+                break
+
+        if expired:
+            formatted = "%s late" % formatted
+        else:
+            formatted = "in %s" % formatted
 
 @dataclass
 class TaskInfo:
