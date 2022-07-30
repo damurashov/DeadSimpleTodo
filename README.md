@@ -36,12 +36,12 @@ It started with a todo script.
 I needed a tool which would enable me to make a quick note and push it into a private Github repository in a timely fashion, that means with no more than 3 keystrokes.
 The set of requirements which I came up with was very short: git-based synchronization, simple navigation among entries, possibliity to edit them (and fast), date/time-related functionality which would let me see time before deadlines (if there are any), and basic search capabilities.
 
-No project folders, mouse clicks, registration forms, gui, vaults, or relations between notes.
+No project folders, mouse clicks, registration forms, GUI, vaults, or relations between notes.
 And if I ever needed something that would resemble the latter, I would create a special naming scheme and get it seamlessly vowen into my workflow.
 After all, it is my computer that has to help me with my day-to-day errands, not me helping some relation-oriented data structure to understand intricate links between my notes.
 
 After a series of incremental iterations, I discovered that my script had become a full-fledged terminal todo application, and it checks every mark I wanted it to check.
-And above all it is simple and practical.
+Simple and practical, just as it was intended.
 
 # Requirements
 
