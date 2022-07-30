@@ -1,11 +1,13 @@
 # DeadSimpleTodo
 
+![res/demo.gif]()
+
 DeadSimpleTodo is a dead-simple terminal todo application. If you are a frequent terminal user, it will give you a frictionless experience like the one it gives to me.
 
 # Features
 
 - Parsing of both structured and unstructured date / time phrases (like "07-02", "14:02", "tomorrow", "in 2 hours", "by 3 a.m.";
-- Entry sorting: those that have deadlines attached to them will be pushed up to the list; The other ones will be sorted in lexicographical order;
+- Entry sorting: those that have deadlines attached to them will be pushed up in the list; the other ones will be sorted in lexicographical order;
 - Frictionless command line navigation;
 - Displaying time remaining before deadline.
 
