@@ -36,10 +36,9 @@ class Color:
 
     @staticmethod
     def _chunk_append(chunks, text, pos_last, pos_from, pos_to, *colors):
-        chunk_before = text[:pos_from]
+        chunk_before = text[pos_last:pos_from]
         chunk_range = "".join(colors) + text[pos_from : pos_to] + colorama.Style.RESET_ALL
-        chunk_after = text[pos_to:]
-        chunks += [chunk_before, chunk_range, chunk_after]
+        chunks += [chunk_before, chunk_range]
 
         return chunks
 
@@ -54,7 +53,8 @@ class Color:
                 chunks = Color._chunk_append(chunks, text, pos_last, *m.span(0), *colors)
                 pos_last = m.span(0)[1]
 
-            if len(chunks) > 0:
+            if 0 < pos_last:
+                chunks.append(text[pos_last:])
                 text = "".join(chunks)
 
         return text
