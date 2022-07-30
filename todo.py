@@ -60,6 +60,8 @@ class DateTime:
         else:
             formatted = "in %s" % formatted
 
+        return formatted
+
 
 @dataclass
 class Queue:
@@ -128,7 +130,14 @@ class Queue:
         ret += "TODO:\n"
 
         for i in self.tasks["todo"]:
-            ret += " + " + i
+
+            deadline = self._task_get_deadline(i)
+            if deadline is not None:
+                deadline = "(%s) " % DateTime.deadline_format_remaining(deadline)
+            else:
+                deadline = ""
+
+            ret += " + %s%s" % (deadline, i)
             info = self.tasks["info"][i]
 
             for k, v in info.items():
