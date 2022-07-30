@@ -2,3 +2,4 @@ simple_term_menu
 parsedatetime
 python-dateutil
 tabulate
+colorama
