@@ -11,6 +11,8 @@ from parsedatetime import Calendar
 import json
 from dateutil.parser import parse as date_parse
 import tabulate
+import colorama
+import re
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -22,6 +24,40 @@ def list_remove_item(l, item):
         l.remove(item)
     except ValueError:
         pass
+
+
+class Color:
+
+    RULES = [
+        [r"IMPORTANT", colorama.Back.YELLOW],
+        [r"LONGTERM", colorama.Fore.BLUE],
+        [r"(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", colorama.Fore.BLUE]
+    ]
+
+    @staticmethod
+    def _chunk_append(chunks, text, pos_last, pos_from, pos_to, *colors):
+        chunk_before = text[:pos_from]
+        chunk_range = "".join(colors) + text[pos_from : pos_to] + colorama.Style.RESET_ALL
+        chunk_after = text[pos_to:]
+        chunks += [chunk_before, chunk_range, chunk_after]
+
+        return chunks
+
+    @staticmethod
+    def colorize(text: str):
+        print(text)
+        for rule, *colors in Color.RULES:
+            chunks = []
+            pos_last = 0
+
+            for m in re.finditer(rule, text):
+                chunks = Color._chunk_append(chunks, text, pos_last, *m.span(0), *colors)
+                pos_last = m.span(0)[1]
+
+            if len(chunks) > 0:
+                text = "".join(chunks)
+
+        return text
 
 
 class DateTime:
@@ -150,6 +186,10 @@ class Queue:
 
         for i in self.tasks["done"]:
             ret += " ✓ " + i + '\n'
+
+        # Colorize
+        lines = list(map(lambda l: Color.colorize(l), re.split(r"[\r\n]+", ret)))
+        ret = "\n".join(lines)
 
         return ret
 
