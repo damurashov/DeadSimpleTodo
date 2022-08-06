@@ -63,6 +63,18 @@ class Color:
         return text
 
 
+class TextFormat:
+    @staticmethod
+    def split_double_multiline(s)
+        assert len(s) > 0
+        s = re.split(r'\n\n', s, flags=re.MULTILINE)
+
+        if len(s) == 1:
+            s = re.split(r'\r\n\r\n', s[0], flags=re.MULTILINE)
+
+        return s
+
+
 class DateTime:
     @staticmethod
     def get_datetime():
