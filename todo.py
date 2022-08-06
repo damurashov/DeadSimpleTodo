@@ -314,7 +314,7 @@ class Cli:
             new_items = f.readlines()
             new_items = [l.strip() for l in new_items]
 
-        os.system("rm .todotempedit")
+        os.remove(".todotempedit")
 
         return item, new_items
 
