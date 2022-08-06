@@ -311,7 +311,8 @@ class Cli:
 
     @staticmethod
     def list_select(items, title):
-        item_id = TerminalMenu(items, title=title).show()
+        items_short = list(map(lambda i: TextFormat.split_first_line(i)[0], items))
+        item_id = TerminalMenu(items_short, title=title).show()
 
         if item_id is None:
             return None
