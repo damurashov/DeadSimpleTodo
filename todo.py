@@ -79,7 +79,12 @@ class TextFormat:
     @staticmethod
     def split_first_line(s):
         assert len(s) > 0
-        return re.split(TextFormat.get_multiline_splitter(s), s, maxsplit=1, flags=re.MULTILINE)
+        s = re.split(TextFormat.get_multiline_splitter(s), s, maxsplit=1, flags=re.MULTILINE)
+
+        if len(s) == 1:
+            s += [""]
+
+        return s
 
     @staticmethod
     def splitlines(s):
