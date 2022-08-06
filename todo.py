@@ -177,6 +177,17 @@ class Queue:
 
         return ret
 
+    def task_get_info(self, task, infokey):
+        if task not in self.tasks["todo"]:
+            return None
+
+        assert task in self.tasks["info"]
+
+        if infokey not in self.tasks["info"][task]:
+            return None
+
+        return self.tasks["info"][task][infokey]
+
     def __str__(self):
         ret = ""
         ret += "TODO:\n"
