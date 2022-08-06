@@ -331,8 +331,8 @@ class Cli:
             ["cd", "Clear DONE backlog"],
             ], tablefmt="fancy_grid"))
 
-    def list_edit(list, title):
-        item = Cli.list_select(list, title=title)
+    def list_edit(lst, title):
+        item = Cli.list_select(lst, title=title)
 
         if item is None:
             return None, None
@@ -344,6 +344,8 @@ class Cli:
 
         with open(".todotempedit") as f:
             new_items = TextFormat.split_double_multiline(f.read())
+            new_items = list(map(str.strip, new_items))
+            new_items = list(filter(lambda s: len(s) > 0, new_items))
 
         os.remove(".todotempedit")
 
