@@ -311,8 +311,7 @@ class Cli:
         os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
 
         with open(".todotempedit") as f:
-            new_items = f.readlines()
-            new_items = [l.strip() for l in new_items]
+            new_items = TextFormat.split_double_multiline(f.read())
 
         os.remove(".todotempedit")
 
