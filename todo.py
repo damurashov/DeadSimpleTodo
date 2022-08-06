@@ -65,7 +65,7 @@ class Color:
 
 class TextFormat:
     @staticmethod
-    def split_double_multiline(s)
+    def split_double_multiline(s):
         assert len(s) > 0
         s = re.split(r'\n\n', s, flags=re.MULTILINE)
 
