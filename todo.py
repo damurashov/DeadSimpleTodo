@@ -65,14 +65,35 @@ class Color:
 
 class TextFormat:
     @staticmethod
+    def get_multiline_splitter(s):
+        if re.search(r'\r\n', s) is not None:
+            return r'\r\n'
+
+        return r'\n'
+
+    @staticmethod
     def split_double_multiline(s):
         assert len(s) > 0
-        s = re.split(r'\n\n', s, flags=re.MULTILINE)
+        return re.split(TextFormat.get_multiline_splitter(s) * 2, s, flags=re.MULTILINE)
 
-        if len(s) == 1:
-            s = re.split(r'\r\n\r\n', s[0], flags=re.MULTILINE)
+    @staticmethod
+    def split_first_line(s):
+        assert len(s) > 0
+        return re.split(TextFormat.get_multiline_splitter(s), s, maxsplit=1, flags=re.MULTILINE)
 
-        return s
+    @staticmethod
+    def task_format_filter_default(task, **kwargs):
+        due = kwargs.pop("due", None)
+        details = kwargs.pop("details", "")
+
+        if kwargs.pop("istodo"):
+            marker = " + "
+        else:
+            marker = " ✓ "
+
+        formatted = [marker, task, details]
+
+        return tabulate.tabulate(formatted, maxcolwidths=[None, 20, None])
 
 
 class DateTime:
