@@ -271,15 +271,16 @@ class Queue:
         stall_info = []
 
         for k in self.tasks["info"].keys():
-            if k not in self.tasks["todo"]:
+            if k not in self.tasks["todo"] and k not in self.tasks["done"]:
                 stall_info += [k]
 
         for si in stall_info:
             self.tasks["info"].pop(si)
 
-        for t in self.tasks["todo"]:
-            if t not in self.tasks["info"].keys():
-                self.tasks["info"][t] = Queue._task_parse_info(t)
+        for category in ["todo", "done"]:
+            for t in self.tasks[category]:
+                if t not in self.tasks["info"].keys():
+                    self.tasks["info"][t] = Queue._task_parse_info(t)
 
 
     def add(self, task):
