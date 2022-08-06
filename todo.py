@@ -82,6 +82,11 @@ class TextFormat:
         return re.split(TextFormat.get_multiline_splitter(s), s, maxsplit=1, flags=re.MULTILINE)
 
     @staticmethod
+    def splitlines(s):
+        assert len(s) > 0
+        return re.split(TextFormat.get_multiline_splitter(s), s, flags=re.MULTILINE)
+
+    @staticmethod
     def task_format_filter_default(task, **kwargs):
         due = kwargs.pop("due", None)
         details = kwargs.pop("details", "")
