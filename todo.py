@@ -196,6 +196,13 @@ class Queue:
         if deadline:
             ret["due"] = datetime.datetime.strftime(deadline, TIME_FORMAT)
 
+        details = TextFormat.split_first_line(task)
+        ret["header"] = details[0]
+        ret["details"] = ""
+
+        if len(details) == 2:
+            ret["details"] = details[1]
+
         return ret
 
     def task_get_info(self, task, infokey):
