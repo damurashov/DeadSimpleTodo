@@ -216,7 +216,7 @@ class Queue:
         return ret
 
     def task_get_info(self, task, infokey):
-        if task not in self.tasks["todo"]:
+        if task not in self.tasks["todo"] and task not in self.tasks["done"]:
             return None
 
         assert task in self.tasks["info"]
