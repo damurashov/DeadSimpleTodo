@@ -176,9 +176,9 @@ class TextFormat:
         header_col_width = 30
 
         if kwargs.pop("istodo"):
-            marker = " + "
+            marker = " +"
         else:
-            marker = " ✓ "
+            marker = " ✓"
 
         output_width = int(.7 * (shutil.get_terminal_size()[0] - len(marker)))
         header_col_width = int(output_width * 0.33)
@@ -188,13 +188,20 @@ class TextFormat:
         if len(details) > 0:
             details = '\n'.join(map(lambda t: textwrap.fill(t, width=details_col_width),
                 TextFormat.split_multiline(details)))
+            details = textwrap.indent(details, '- ', lambda l: False)
+            lines_details = len(TextFormat.split_multiline(details))
+        else:
+            lines_details = 1
 
         if due is not None:
             header = "(%s)\n%s" % (DateTime.deadline_format_remaining(due), header)
 
+        header_colalign = "center" if len(TextFormat.split_multiline(header)) == 1 and len(details) > 0 else "left"
+
         formatted = [marker, header, details]
         formatted = [["", "." * header_col_width, ""]] + [formatted]  # Hack: artificially extend the length of the header
-        ret = tabulate.tabulate(formatted, tablefmt="plain", maxcolwidths=[None, header_col_width, None])
+        ret = tabulate.tabulate(formatted, tablefmt="plain", maxcolwidths=[None, None, None],
+            colalign=(None, header_colalign, None))
         ret = TextFormat.split_first_line(ret)[1]  # Remove the artificial row
 
         return ret
