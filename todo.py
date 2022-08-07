@@ -35,6 +35,7 @@ def list_remove_item(l, item):
 class Color:
 
     SEARCH_HIGHLIGHT = [[colorama.Back.CYAN, colorama.Fore.BLACK], [colorama.Back.RESET, colorama.Fore.RESET]]
+    HELP_ENTRY = [colorama.Style.BRIGHT]
 
     @staticmethod
     def colorize_wrap(text, *colors):
@@ -479,19 +480,23 @@ class Cli:
         return bool(TerminalMenu(['[n] No', '[y] Yes'], title=title).show())
 
     def print_help():
-        print(tabulate.tabulate([
+        entries = [
             ["?", "Show this help message"],
             ["NONE", "Show list of tasks"],
-            ["f ..", "Filter tasks (case-insensitive)"],
+            ["f ..", "Filter tasks"],
             ["F ..", "Filter tasks (case-sensitive)"],
             ["h ..", "Use  JSON from the current directory"],
             ["a ..", "Add"],
             ["e", "Edit in an external terminal editor \n(vim by default, tweak the source \nfile to replace)"],
+            ["e ..", "Filter-edit"],
+            ["E ..", "Filter-edit (case-sensitive)"],
             ["d", "Do. Mark tasks as done"],
             ["u", "Undo. Mark tasks as undone"],
             ["cd", "Clear DONE backlog"],
             ["m", "More. Show details"],
-            ], tablefmt="fancy_grid"))
+        ]
+        entries = list(map(lambda i: [Color.colorize_wrap(i[0], *Color.HELP_ENTRY), i[1]], entries))
+        print(tabulate.tabulate(entries, tablefmt="plain", colalign=["left", "left"]))
 
     def list_edit(lst, title):
         item = Cli.list_select(lst, title=title)
