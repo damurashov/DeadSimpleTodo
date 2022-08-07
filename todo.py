@@ -482,10 +482,12 @@ def main():
 
             if item is not None:
                 q.item_edit(item, *items)
+        elif sys.argv[1] == 'm':  # more
+            print(TextFormat.format_complete(q))
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
-        print(TextFormat.format_complete(q))
+        print(TextFormat.format_short(q))
 
     q.save(from_here)
 
