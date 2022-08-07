@@ -19,6 +19,7 @@ from generic import Log
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 CURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), TIME_FORMAT)
+tabulate.PRESERVE_WHITESPACE = True
 
 
 def list_remove_item(l, item):
@@ -106,7 +107,7 @@ class TextFormat:
             marker = " ✓ "
 
         if due is not None:
-            header += "\n" + DateTime.deadline_format_remaining(due)
+            header = "(%s)\n%s" % (DateTime.deadline_format_remaining(due), header)
 
         formatted = [marker, header, details]
         formatted = [["", "." * header_col_width, ""]] + [formatted]  # Hack: artificially extend the length of the header
@@ -114,6 +115,10 @@ class TextFormat:
         ret = TextFormat.split_first_line(ret)[1]  # Remove the artificial row
 
         return ret
+
+    @staticmethod
+    def task_format_filter_short(task, *args, **kwargs):
+        pass
 
 
 class DateTime:
@@ -259,6 +264,9 @@ class Queue:
         formatted = "\n".join(formatted)
 
         return formatted
+
+    def format_short(self):
+        pass
 
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
