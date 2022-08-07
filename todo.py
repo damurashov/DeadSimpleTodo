@@ -203,6 +203,7 @@ class TextFormat:
     def task_format_filter_short(task, *args, **kwargs):
         header = kwargs.pop("header")
         due = kwargs.pop("due", None)
+        marker_more = "..." if len(kwargs.pop("details", "")) > 0 else ""
 
         if due is not None:
             header = "(%s) %s" % (DateTime.deadline_format_remaining(due), header)
@@ -212,7 +213,7 @@ class TextFormat:
         else:
             marker = " ✓ "
 
-        return "%s %s" % (marker, header)
+        return "%s %s %s" % (marker, header, Color.colorize_bold(marker_more))
 
 
 class DateTime:
