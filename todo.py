@@ -189,7 +189,6 @@ class TextFormat:
 
         details = textwrap.indent(details, ' ')
         header = header + '\n' + details
-        print(header)
 
         formatted = [[marker, header]]
         ret = tabulate.tabulate(formatted, tablefmt="plain", maxcolwidths=[None, None],
