@@ -165,11 +165,8 @@ class TextFormat:
     def task_format_filter_default(task, *args, **kwargs):
         due = kwargs.pop("due", None)
         details = kwargs.pop("details", "")
-        header = kwargs.pop("header", None)
+        header = kwargs.pop("header")
         header_col_width = 30
-
-        if header is None:  # Backward compat. w/ 1.3
-            header = TextFormat.split_first_line(task)[0]
 
         if kwargs.pop("istodo"):
             marker = " + "
@@ -188,11 +185,8 @@ class TextFormat:
 
     @staticmethod
     def task_format_filter_short(task, *args, **kwargs):
-        header = kwargs.pop("header", None)
+        header = kwargs.pop("header")
         due = kwargs.pop("due", None)
-
-        if header is None:  # Backward compat. w/ 1.3
-            header = TextFormat.split_first_line(task)[0]
 
         if due is not None:
             header = "(%s) %s" % (DateTime.deadline_format_remaining(due), header)
