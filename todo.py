@@ -19,6 +19,7 @@ from generic import Log
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 CURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), TIME_FORMAT)
+VERSION = "1.4"
 tabulate.PRESERVE_WHITESPACE = True
 
 
@@ -259,6 +260,13 @@ class Queue:
 
         try:
             with open(queue_file, 'r') as f:
+                q = Queue(json.loads(f.read()))
+
+                if "version" not in q.tasks.keys():
+                    q._sync_task_info()
+                elif q.tasks["version"] != VERSION:
+                    q._sync_task_info()
+
                 return Queue(json.loads(f.read()))
         except:
             return Queue({
