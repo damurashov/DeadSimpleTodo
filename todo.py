@@ -131,7 +131,7 @@ class TextFormat:
             lambda t, *args, **kwargs: Color.colorize(t)
         ]
 
-        return TextFormat._format(q, formatters_todo)
+        return TextFormat._format(queue, formatters_todo)
 
     @staticmethod
     def get_multiline_splitter(s):
@@ -463,12 +463,10 @@ def main():
             task = task.strip()
             if len(task):
                 q.add(task)
-        elif sys.argv[1].lower() == 'f':  # filter
-            case_cb = lambda f: f if sys.argv[1].isupper() else f.lower()
-            out = str(q)
-            out = out.split('\n')
-            out = [o for o in out if case_cb(sys.argv[2]) in case_cb(o)]
-            print('\n'.join(out))
+        elif sys.argv[1] == 'f':  # filter
+            print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], False))
+        elif sys.argv[1] == 'F':
+            print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], True))
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
             for item in Cli.list_select_multi(q.get_done(), "Undo:"):
