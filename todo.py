@@ -57,8 +57,8 @@ class Color:
         return Color._colorize_impl(s, colorama.Style.BRIGHT)
 
     @staticmethod
-    def colorize(text: str):
-        for rule, formatter in Color.RULES:
+    def colorize(text: str, rules=RULES):
+        for rule, formatter in rules:
             chunks = []
             pos_last = 0
 
