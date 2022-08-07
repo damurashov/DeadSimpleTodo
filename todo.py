@@ -352,6 +352,7 @@ class Queue:
 
     def _sync_task_info(self, force_update=False):
         stall_info = []
+        self.tasks["version"] = VERSION
 
         for k in self.tasks["info"].keys():
             if k not in self.tasks["todo"] and k not in self.tasks["done"]:
