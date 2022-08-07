@@ -35,13 +35,13 @@ def list_remove_item(l, item):
 class Color:
 
     @staticmethod
-    def _colorize_impl(text, *colors):
+    def colorize_wrap(text, *colors):
         return "".join(colors) + text + colorama.Style.RESET_ALL
 
     # This set of rules may be extended w/ any formatting code whatsoever
     RULES = [
-        [r"IMPORTANT", lambda text: Color._colorize_impl(text, colorama.Back.YELLOW)],
-        [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color._colorize_impl(text, colorama.Fore.BLUE)]
+        [r"IMPORTANT", lambda text: Color.colorize_wrap(text, colorama.Back.YELLOW)],
+        [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color.colorize_wrap(text, colorama.Fore.BLUE)]
     ]
 
     @staticmethod
@@ -54,7 +54,7 @@ class Color:
 
     @staticmethod
     def colorize_bold(s):
-        return Color._colorize_impl(s, colorama.Style.BRIGHT)
+        return Color.colorize_wrap(s, colorama.Style.BRIGHT)
 
     @staticmethod
     def colorize(text: str, rules=RULES):
