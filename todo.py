@@ -263,31 +263,37 @@ class Queue:
 
         return ret
 
-    def format_complete(self):
-        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
-        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
-        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
+    def _format(self, formatters_todo, formatters_done):
         formatted = ["TODO:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
+        formatted += list(map(lambda t: self.task_format(t, formatters_todo), self.tasks["todo"]))
         formatted += ["DONE:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
+        formatted += list(map(lambda t: self.task_format(t, formatters_done), self.tasks["done"]))
         formatted = list(filter(lambda t: t is not None, formatted))
         formatted = "\n".join(formatted)
 
         return formatted
+
+    def format_complete(self):
+        formatters_todo = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+        formatters_done = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
+        ]
+
+        return self._format(formatters_todo, formatters_done)
 
     def format_short(self):
-        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True)
-        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
-        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
-        formatted = ["TODO:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
-        formatted += ["DONE:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
-        formatted = list(filter(lambda t: t is not None, formatted))
-        formatted = "\n".join(formatted)
+        formatters_todo = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+        formatters_done = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
+        ]
 
-        return formatted
+        return self._format(formatters_todo, formatters_done)
 
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
