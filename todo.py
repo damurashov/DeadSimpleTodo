@@ -252,28 +252,31 @@ class Queue:
 
         return self.tasks["info"][task][infokey]
 
-    def task_format(self, task, formatters):
+    @staticmethod
+    def task_format(q, task, formatters):
         ret = task
 
         for fmt in formatters:
-            ret = fmt(ret, **self.tasks["info"][task])
+            ret = fmt(ret, **q.tasks["info"][task])
 
             if ret is None:
                 return None
 
         return ret
 
-    def _format(self, formatters_todo, formatters_done):
+    @staticmethod
+    def _format(q, formatters_todo, formatters_done):
         formatted = ["TODO:"]
-        formatted += list(map(lambda t: self.task_format(t, formatters_todo), self.tasks["todo"]))
+        formatted += list(map(lambda t: Queue.task_format(q, t, formatters_todo), q.tasks["todo"]))
         formatted += ["DONE:"]
-        formatted += list(map(lambda t: self.task_format(t, formatters_done), self.tasks["done"]))
+        formatted += list(map(lambda t: Queue.task_format(q, formatters_done), q.tasks["done"]))
         formatted = list(filter(lambda t: t is not None, formatted))
         formatted = "\n".join(formatted)
 
         return formatted
 
-    def format_complete(self):
+    @staticmethod
+    def format_complete(q):
         formatters_todo = [
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
             lambda t, *args, **kwargs: Color.colorize(t)
@@ -282,9 +285,10 @@ class Queue:
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
         ]
 
-        return self._format(formatters_todo, formatters_done)
+        return Queue._format(q, formatters_todo, formatters_done)
 
-    def format_short(self):
+    @staticmethod
+    def format_short(q):
         formatters_todo = [
             lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True),
             lambda t, *args, **kwargs: Color.colorize(t)
@@ -293,7 +297,7 @@ class Queue:
             lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
         ]
 
-        return self._format(formatters_todo, formatters_done)
+        return Queue._format(q, formatters_todo, formatters_done)
 
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
@@ -464,7 +468,7 @@ def main():
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
-        print(q.format_complete())
+        print(Queue.format_short(q))
 
     q.save(from_here)
 
