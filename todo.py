@@ -21,7 +21,7 @@ import textwrap
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 CURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), TIME_FORMAT)
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 tabulate.PRESERVE_WHITESPACE = True
 
 
