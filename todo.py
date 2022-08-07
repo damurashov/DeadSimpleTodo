@@ -492,7 +492,11 @@ class Cli:
             ["e ..", "Filter-edit"],
             ["E ..", "Filter-edit (case-sensitive)"],
             ["d", "Do. Mark tasks as done"],
+            ["d..", "Filter-do"],
+            ["D..", "Filter-do (case-sensitive)"],
             ["u", "Undo. Mark tasks as undone"],
+            ["u..", "Filter-undo"],
+            ["U..", "Filter-undo (case-sensitive)"],
             ["cd", "Clear DONE backlog"],
             ["m", "More. Show details"],
         ]
