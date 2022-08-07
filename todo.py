@@ -3,6 +3,7 @@
 
 import sys
 import os
+from tkinter import W
 from simple_term_menu import TerminalMenu
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -13,10 +14,12 @@ from dateutil.parser import parse as date_parse
 import tabulate
 import colorama
 import re
+from generic import Log
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 CURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), TIME_FORMAT)
+tabulate.PRESERVE_WHITESPACE = True
 
 
 def list_remove_item(l, item):
@@ -61,6 +64,138 @@ class Color:
                 text = "".join(chunks)
 
         return text
+
+
+class TextFormat:
+
+    @staticmethod
+    def task_format(q, task, formatters):
+        ret = task
+
+        for fmt in formatters:
+            ret = fmt(ret, **q.tasks["info"][task])
+
+            if ret is None:
+                return None
+
+        return ret
+
+    @staticmethod
+    def _format(q, formatters_todo, formatters_done=None):
+        formatted = ["TODO:"]
+        formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_todo), q.tasks["todo"]))
+
+        if formatters_done is not None:
+            formatted += ["DONE:"]
+            formatted += list(map(lambda t: TextFormat.task_format(q, formatters_done), q.tasks["done"]))
+
+        formatted = list(filter(lambda t: t is not None, formatted))
+        formatted = "\n".join(formatted)
+
+        return formatted
+
+    @staticmethod
+    def format_complete(q):
+        formatters_todo = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+        formatters_done = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
+        ]
+
+        return TextFormat._format(q, formatters_todo, formatters_done)
+
+    @staticmethod
+    def format_short(q):
+        formatters_todo = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+        formatters_done = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
+        ]
+
+        return TextFormat._format(q, formatters_todo, formatters_done)
+
+    @staticmethod
+    def task_format_complete_search_and(queue, queries, match_case):
+        if match_case:
+            adjust_case = lambda x: x
+        else:
+            adjust_case = lambda x: x.lower()
+
+        formatters_todo = [
+            lambda t, *args, **kwargs: t if all(map(lambda q: adjust_case(q) in adjust_case(t), queries)) else None,  # Search for entries that satisfy the query
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+
+        return TextFormat._format(queue, formatters_todo)
+
+    @staticmethod
+    def get_multiline_splitter(s):
+        if re.search(r'\r\n', s) is not None:
+            return r'\r\n'
+
+        return r'\n'
+
+    @staticmethod
+    def split_double_multiline(s):
+        assert len(s) > 0
+        return re.split(TextFormat.get_multiline_splitter(s) * 2, s, flags=re.MULTILINE)
+
+    @staticmethod
+    def split_first_line(s):
+        assert len(s) > 0
+        s = re.split(TextFormat.get_multiline_splitter(s), s, maxsplit=1, flags=re.MULTILINE)
+
+        if len(s) == 1:
+            s += [""]
+
+        return s
+
+    @staticmethod
+    def splitlines(s):
+        assert len(s) > 0
+        return re.split(TextFormat.get_multiline_splitter(s), s, flags=re.MULTILINE)
+
+    @staticmethod
+    def task_format_filter_default(task, *args, **kwargs):
+        due = kwargs.pop("due", None)
+        details = kwargs.pop("details", "")
+        header = kwargs.pop("header")
+        header_col_width = 30
+
+        if kwargs.pop("istodo"):
+            marker = " + "
+        else:
+            marker = " ✓ "
+
+        if due is not None:
+            header = "(%s)\n%s" % (DateTime.deadline_format_remaining(due), header)
+
+        formatted = [marker, header, details]
+        formatted = [["", "." * header_col_width, ""]] + [formatted]  # Hack: artificially extend the length of the header
+        ret = tabulate.tabulate(formatted, tablefmt="plain", maxcolwidths=[None, header_col_width, None])
+        ret = TextFormat.split_first_line(ret)[1]  # Remove the artificial row
+
+        return ret
+
+    @staticmethod
+    def task_format_filter_short(task, *args, **kwargs):
+        header = kwargs.pop("header")
+        due = kwargs.pop("due", None)
+
+        if due is not None:
+            header = "(%s) %s" % (DateTime.deadline_format_remaining(due), header)
+
+        if kwargs.pop("istodo"):
+            marker = " + "
+        else:
+            marker = " ✓ "
+
+        return "%s %s" % (marker, header)
 
 
 class DateTime:
@@ -163,38 +298,38 @@ class Queue:
         if deadline:
             ret["due"] = datetime.datetime.strftime(deadline, TIME_FORMAT)
 
+        details = TextFormat.split_first_line(task)
+        ret["header"] = details[0]
+        ret["details"] = ""
+
+        if len(details) == 2:
+            ret["details"] = details[1]
+
         return ret
+
+    def task_get_info(self, task, infokey):
+        if task not in self.tasks["todo"] and task not in self.tasks["done"]:
+            return None
+
+        assert task in self.tasks["info"]
+
+        if infokey not in self.tasks["info"][task]:
+            return None
+
+        return self.tasks["info"][task][infokey]
 
     def __str__(self):
-        ret = ""
-        ret += "TODO:\n"
+        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
+        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
+        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
+        formatted = ["TODO:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
+        formatted += ["DONE:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
+        formatted = list(filter(lambda t: t is not None, formatted))
+        formatted = "\n".join(formatted)
 
-        for i in self.tasks["todo"]:
-
-            deadline = self._task_get_deadline(i)
-            if deadline is not None:
-                deadline = "(%s) " % DateTime.deadline_format_remaining(deadline)
-            else:
-                deadline = ""
-
-            ret += " + %s%s" % (deadline, i)
-            info = self.tasks["info"][i]
-
-            for k, v in info.items():
-                ret += " | " + str(k) + ": " + str(v)
-
-            ret += '\n'
-
-        ret += "DONE:\n"
-
-        for i in self.tasks["done"]:
-            ret += " ✓ " + i + '\n'
-
-        # Colorize
-        lines = list(map(lambda l: Color.colorize(l), re.split(r"[\r\n]+", ret)))
-        ret = "\n".join(lines)
-
-        return ret
+        return formatted
 
     def undo(self, item):
         list_remove_item(self.tasks["done"], item)
@@ -210,16 +345,16 @@ class Queue:
         stall_info = []
 
         for k in self.tasks["info"].keys():
-            if k not in self.tasks["todo"]:
+            if k not in self.tasks["todo"] and k not in self.tasks["done"]:
                 stall_info += [k]
 
         for si in stall_info:
             self.tasks["info"].pop(si)
 
-        for t in self.tasks["todo"]:
-            if t not in self.tasks["info"].keys():
-                self.tasks["info"][t] = Queue._task_parse_info(t)
-
+        for category in ["todo", "done"]:
+            for t in self.tasks[category]:
+                if t not in self.tasks["info"].keys():
+                    self.tasks["info"][t] = Queue._task_parse_info(t)
 
     def add(self, task):
         """
@@ -250,7 +385,8 @@ class Cli:
 
     @staticmethod
     def list_select(items, title):
-        item_id = TerminalMenu(items, title=title).show()
+        items_short = list(map(lambda i: TextFormat.split_first_line(i)[0], items))
+        item_id = TerminalMenu(items_short, title=title).show()
 
         if item_id is None:
             return None
@@ -261,7 +397,8 @@ class Cli:
 
     @staticmethod
     def list_select_multi(items, title):
-        item_ids = TerminalMenu(items, title=title, multi_select=True).show()
+        items_short = list(map(lambda i: TextFormat.split_first_line(i)[0], items))
+        item_ids = TerminalMenu(items_short, title=title, multi_select=True).show()
 
         if item_ids is None:
             return []
@@ -285,10 +422,11 @@ class Cli:
             ["d", "Do. Mark tasks as done"],
             ["u", "Undo. Mark tasks as undone"],
             ["cd", "Clear DONE backlog"],
+            ["m", "More. Show details"],
             ], tablefmt="fancy_grid"))
 
-    def list_edit(list, title):
-        item = Cli.list_select(list, title=title)
+    def list_edit(lst, title):
+        item = Cli.list_select(lst, title=title)
 
         if item is None:
             return None, None
@@ -299,10 +437,11 @@ class Cli:
         os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
 
         with open(".todotempedit") as f:
-            new_items = f.readlines()
-            new_items = [l.strip() for l in new_items]
+            new_items = TextFormat.split_double_multiline(f.read())
+            new_items = list(map(str.strip, new_items))
+            new_items = list(filter(lambda s: len(s) > 0, new_items))
 
-        os.system("rm .todotempedit")
+        os.remove(".todotempedit")
 
         return item, new_items
 
@@ -325,12 +464,10 @@ def main():
             task = task.strip()
             if len(task):
                 q.add(task)
-        elif sys.argv[1].lower() == 'f':  # filter
-            case_cb = lambda f: f if sys.argv[1].isupper() else f.lower()
-            out = str(q)
-            out = out.split('\n')
-            out = [o for o in out if case_cb(sys.argv[2]) in case_cb(o)]
-            print('\n'.join(out))
+        elif sys.argv[1] == 'f':  # filter
+            print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], False))
+        elif sys.argv[1] == 'F':
+            print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], True))
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
             for item in Cli.list_select_multi(q.get_done(), "Undo:"):
@@ -346,10 +483,12 @@ def main():
 
             if item is not None:
                 q.item_edit(item, *items)
+        elif sys.argv[1] == 'm':  # more
+            print(TextFormat.format_complete(q))
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
-        print(q)
+        print(TextFormat.format_short(q))
 
     q.save(from_here)
 
