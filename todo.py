@@ -118,7 +118,18 @@ class TextFormat:
 
     @staticmethod
     def task_format_filter_short(task, *args, **kwargs):
-        pass
+        header = kwargs.pop("header")
+        due = kwargs.pop("due", None)
+
+        if due is not None:
+            header = "(%s) %s" % (DateTime.deadline_format_remaining(due), header)
+
+        if kwargs.pop("istodo"):
+            marker = " + "
+        else:
+            marker = " ✓ "
+
+        return "%s %s" % (marker, header)
 
 
 class DateTime:
@@ -266,7 +277,17 @@ class Queue:
         return formatted
 
     def format_short(self):
-        pass
+        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True)
+        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
+        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
+        formatted = ["TODO:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
+        formatted += ["DONE:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
+        formatted = list(filter(lambda t: t is not None, formatted))
+        formatted = "\n".join(formatted)
+
+        return formatted
 
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
