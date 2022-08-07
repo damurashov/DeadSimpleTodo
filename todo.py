@@ -34,14 +34,22 @@ def list_remove_item(l, item):
 
 class Color:
 
-    SEARCH_HIGHLIGHT = [colorama.Back.CYAN, colorama.Fore.BLACK]
+    SEARCH_HIGHLIGHT = [[colorama.Back.CYAN, colorama.Fore.BLACK], [colorama.Back.RESET, colorama.Fore.RESET]]
 
     @staticmethod
-    def colorize_wrap(text, *colors, reset=None):
-        if reset is None:
-            return "".join(colors) + text + colorama.Style.RESET_ALL
+    def colorize_wrap(text, *colors):
+        """
+        Accepts 2 types of sequences:
+        1. [color, color, color]
+        2. [[color, color,...], [color, color]] - The second sequence will be applied at the end
+        """
+        assert 2 >= len(colors) > 0
+        assert type(colors[0]) in [list, type(colorama.Fore.BLACK)]
+
+        if type(colors[0]) is list:
+            return "".join(colors[0]) + text + "".join(colors[1])
         else:
-            return "".join(colors) + text + "".join(reset)
+            return "".join(colors) + text + colorama.Style.RESET_ALL
 
     # This set of rules may be extended w/ any formatting code whatsoever
     RULES = [
