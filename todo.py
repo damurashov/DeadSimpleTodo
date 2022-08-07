@@ -87,7 +87,7 @@ class TextFormat:
 
         if formatters_done is not None:
             formatted += ["DONE:"]
-            formatted += list(map(lambda t: TextFormat.task_format(q, formatters_done), q.tasks["done"]))
+            formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_done), q.tasks["done"]))
 
         formatted = list(filter(lambda t: t is not None, formatted))
         formatted = "\n".join(formatted)
