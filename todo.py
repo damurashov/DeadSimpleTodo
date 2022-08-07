@@ -372,14 +372,15 @@ class Queue:
 
         return self.tasks["info"][task][infokey]
 
-    def search_and(self, queries, match_case):
+    def search_and(self, queries, match_case, category="todo"):
+        assert category in ["todo", "done"]
         if match_case:
             adjust_case = lambda x: x
         else:
             adjust_case = lambda x: x.lower()
 
         queries_check = lambda t: all(map(lambda q: adjust_case(q) in adjust_case(t), queries))
-        map_search_match = map(lambda t: t if queries_check(t) else None, self.tasks["todo"])
+        map_search_match = map(lambda t: t if queries_check(t) else None, self.tasks[category])
         map_search_filter = filter(lambda t: t is not None, map_search_match)
 
         return list(map_search_filter)
@@ -571,6 +572,18 @@ def main():
 
             if item is not None:
                 q.item_edit(item, items)
+        elif sys.argv[1] == 'u':  # Filter-undo
+            for item in Cli.list_select_multi(q.search_and(sys.argv[2:], False, "done"), "Undo:"):
+                q.undo(item)
+        elif sys.argv[1] == 'U':  # Case-sensitive filter-undo
+            for item in Cli.list_select_multi(q.search_and(sys.argv[2:], True, "done"), "Undo:"):
+                q.undo(item)
+        elif sys.argv[1] == 'd':  # Filter-do
+            for item in Cli.list_select_multi(q.search_and(sys.argv[2:], False), "Done: "):
+                q.do(item)
+        elif sys.argv[1] == 'D':  # Case-sensitive filter-do
+            for item in Cli.list_select_multi(q.search_and(sys.argv[2:], True), "Done: "):
+                q.do(item)
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
             for item in Cli.list_select_multi(q.get_done(), "Undo:"):
