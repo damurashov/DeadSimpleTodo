@@ -37,8 +37,11 @@ class Color:
     SEARCH_HIGHLIGHT = [colorama.Back.CYAN, colorama.Fore.BLACK]
 
     @staticmethod
-    def colorize_wrap(text, *colors):
-        return "".join(colors) + text + colorama.Style.RESET_ALL
+    def colorize_wrap(text, *colors, reset=None):
+        if reset is None:
+            return "".join(colors) + text + colorama.Style.RESET_ALL
+        else:
+            return "".join(colors) + text + "".join(reset)
 
     # This set of rules may be extended w/ any formatting code whatsoever
     RULES = [
