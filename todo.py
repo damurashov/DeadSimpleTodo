@@ -422,6 +422,7 @@ class Cli:
             ["d", "Do. Mark tasks as done"],
             ["u", "Undo. Mark tasks as undone"],
             ["cd", "Clear DONE backlog"],
+            ["m", "More. Show details"],
             ], tablefmt="fancy_grid"))
 
     def list_edit(lst, title):
