@@ -12,23 +12,23 @@ class Log:
 
 	@staticmethod
 	def info(*args, **kwargs):
-		return logging.info(Logging.format(*args, **kwargs))
+		return logging.info(Log.format(*args, **kwargs))
 
 	@staticmethod
 	def warning(*args, **kwargs):
-		return logging.warning(Logging.format(*args, **kwargs))
+		return logging.warning(Log.format(*args, **kwargs))
 
 	@staticmethod
 	def error(*args, **kwargs):
-		return logging.error(Logging.format(*args, **kwargs))
+		return logging.error(Log.format(*args, **kwargs))
 
 	@staticmethod
 	def debug(*args, **kwargs):
-		return logging.debug(Logging.format(*args, **kwargs))
+		return logging.debug(Log.format(*args, **kwargs))
 
 	@staticmethod
 	def critical(*args, **kwargs):
-		return logging.critical(Logging.format(*args, **kwargs))
+		return logging.critical(Log.format(*args, **kwargs))
 
 	@staticmethod
 	def format(*args, **kwargs):
