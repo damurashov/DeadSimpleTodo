@@ -15,7 +15,8 @@ import tabulate
 import colorama
 import re
 from generic import Log
-import functools
+import shutil
+import textwrap
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -178,6 +179,15 @@ class TextFormat:
             marker = " + "
         else:
             marker = " ✓ "
+
+        output_width = int(.7 * (shutil.get_terminal_size()[0] - len(marker)))
+        header_col_width = int(output_width * 0.33)
+        details_col_width = output_width - header_col_width
+        header = textwrap.fill(header, width=header_col_width)
+
+        if len(details) > 0:
+            details = '\n'.join(map(lambda t: textwrap.fill(t, width=details_col_width),
+                TextFormat.split_multiline(details)))
 
         if due is not None:
             header = "(%s)\n%s" % (DateTime.deadline_format_remaining(due), header)
