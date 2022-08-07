@@ -247,6 +247,19 @@ class Queue:
 
         return ret
 
+    def format_complete(self):
+        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
+        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
+        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
+        formatted = ["TODO:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
+        formatted += ["DONE:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
+        formatted = list(filter(lambda t: t is not None, formatted))
+        formatted = "\n".join(formatted)
+
+        return formatted
+
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
         formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
@@ -416,7 +429,7 @@ def main():
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
-        print(q)
+        print(q.format_complete())
 
     q.save(from_here)
 
