@@ -21,7 +21,7 @@ import textwrap
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 CURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), TIME_FORMAT)
-VERSION = "1.4.3"
+VERSION = "1.5.0"
 tabulate.PRESERVE_WHITESPACE = True
 
 
@@ -34,14 +34,28 @@ def list_remove_item(l, item):
 
 class Color:
 
+    SEARCH_HIGHLIGHT = [[colorama.Back.CYAN, colorama.Fore.BLACK], [colorama.Back.RESET, colorama.Fore.RESET]]
+    HELP_ENTRY = [colorama.Style.BRIGHT]
+
     @staticmethod
-    def _colorize_impl(text, *colors):
-        return "".join(colors) + text + colorama.Style.RESET_ALL
+    def colorize_wrap(text, *colors):
+        """
+        Accepts 2 types of sequences:
+        1. [color, color, color]
+        2. [[color, color,...], [color, color]] - The second sequence will be applied at the end
+        """
+        assert 2 >= len(colors) > 0
+        assert type(colors[0]) in [list, type(colorama.Fore.BLACK)]
+
+        if type(colors[0]) is list:
+            return "".join(colors[0]) + text + "".join(colors[1])
+        else:
+            return "".join(colors) + text + colorama.Style.RESET_ALL
 
     # This set of rules may be extended w/ any formatting code whatsoever
     RULES = [
-        [r"IMPORTANT", lambda text: Color._colorize_impl(text, colorama.Back.YELLOW)],
-        [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color._colorize_impl(text, colorama.Fore.BLUE)]
+        [r"IMPORTANT", lambda text: Color.colorize_wrap(text, colorama.Back.YELLOW)],
+        [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color.colorize_wrap(text, colorama.Fore.BLUE)]
     ]
 
     @staticmethod
@@ -54,15 +68,15 @@ class Color:
 
     @staticmethod
     def colorize_bold(s):
-        return Color._colorize_impl(s, colorama.Style.BRIGHT)
+        return Color.colorize_wrap(s, colorama.Style.BRIGHT)
 
     @staticmethod
-    def colorize(text: str):
-        for rule, formatter in Color.RULES:
+    def colorize(text: str, rules=RULES, re_flags=0):
+        for rule, formatter in rules:
             chunks = []
             pos_last = 0
 
-            for m in re.finditer(rule, text):
+            for m in re.finditer(rule, text, flags=re_flags):
                 chunks = Color._chunk_append(chunks, text, pos_last, *m.span(0), formatter)
                 pos_last = m.span(0)[1]
 
@@ -132,10 +146,17 @@ class TextFormat:
         else:
             adjust_case = lambda x: x.lower()
 
+        def colorize_search_highlight(text):
+            for q in queries:
+                text = Color.colorize(text, [[q, lambda t: Color.colorize_wrap(t, *Color.SEARCH_HIGHLIGHT)]], 0 if match_case else re.IGNORECASE)
+
+            return text
+
         formatters_todo = [
             lambda t, *args, **kwargs: t if all(map(lambda q: adjust_case(q) in adjust_case(t), queries)) else None,  # Search for entries that satisfy the query
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
-            lambda t, *args, **kwargs: Color.colorize(t)
+            lambda t, *args, **kwargs: Color.colorize(t),
+            lambda t, *args, **kwargs: Color.colorize(t, [[r'\w+', colorize_search_highlight]]),
         ]
 
         return TextFormat._format(queue, formatters_todo)
@@ -187,6 +208,9 @@ class TextFormat:
         if len(details) > 0:
             header = Color.colorize_bold(header)
 
+        if due is not None:
+            header = "(%s) %s" % (DateTime.deadline_format_remaining(due), header)
+
         details = textwrap.indent(details, ' ')
         header = header + '\n' + details
 
@@ -200,6 +224,7 @@ class TextFormat:
     def task_format_filter_short(task, *args, **kwargs):
         header = kwargs.pop("header")
         due = kwargs.pop("due", None)
+        marker_more = "..." if len(kwargs.pop("details", "")) > 0 else ""
 
         if due is not None:
             header = "(%s) %s" % (DateTime.deadline_format_remaining(due), header)
@@ -209,7 +234,7 @@ class TextFormat:
         else:
             marker = " ✓ "
 
-        return "%s %s" % (marker, header)
+        return "%s %s %s" % (marker, header, Color.colorize_bold(marker_more))
 
 
 class DateTime:
@@ -347,6 +372,18 @@ class Queue:
 
         return self.tasks["info"][task][infokey]
 
+    def search_and(self, queries, match_case):
+        if match_case:
+            adjust_case = lambda x: x
+        else:
+            adjust_case = lambda x: x.lower()
+
+        queries_check = lambda t: all(map(lambda q: adjust_case(q) in adjust_case(t), queries))
+        map_search_match = map(lambda t: t if queries_check(t) else None, self.tasks["todo"])
+        map_search_filter = filter(lambda t: t is not None, map_search_match)
+
+        return list(map_search_filter)
+
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
         formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
@@ -393,12 +430,14 @@ class Queue:
         self.tasks["todo"] += [task]
         self._sync_task_info()
 
-    def item_edit(self, item, *items):
+    def item_edit(self, items_before, items_after):
         """
         Edit/Split item
         """
-        list_remove_item(self.tasks["todo"], item)
-        self.tasks["todo"].extend(list(items))
+        for item in items_before:
+            list_remove_item(self.tasks["todo"], item)
+
+        self.tasks["todo"].extend(list(items_after))
         self._sync_task_info()
 
     def get_done(self):
@@ -441,19 +480,23 @@ class Cli:
         return bool(TerminalMenu(['[n] No', '[y] Yes'], title=title).show())
 
     def print_help():
-        print(tabulate.tabulate([
+        entries = [
             ["?", "Show this help message"],
             ["NONE", "Show list of tasks"],
-            ["f ..", "Filter tasks (case-insensitive)"],
+            ["f ..", "Filter tasks"],
             ["F ..", "Filter tasks (case-sensitive)"],
             ["h ..", "Use  JSON from the current directory"],
             ["a ..", "Add"],
             ["e", "Edit in an external terminal editor \n(vim by default, tweak the source \nfile to replace)"],
+            ["e ..", "Filter-edit"],
+            ["E ..", "Filter-edit (case-sensitive)"],
             ["d", "Do. Mark tasks as done"],
             ["u", "Undo. Mark tasks as undone"],
             ["cd", "Clear DONE backlog"],
             ["m", "More. Show details"],
-            ], tablefmt="fancy_grid"))
+        ]
+        entries = list(map(lambda i: [Color.colorize_wrap(i[0], *Color.HELP_ENTRY), i[1]], entries))
+        print(tabulate.tabulate(entries, tablefmt="plain", colalign=["left", "left"]))
 
     def list_edit(lst, title):
         item = Cli.list_select(lst, title=title)
@@ -463,6 +506,26 @@ class Cli:
 
         with open(".todotempedit", 'w') as f:
             f.write(item)
+
+        os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
+
+        with open(".todotempedit") as f:
+            new_items = TextFormat.split_double_multiline(f.read())
+            new_items = list(map(str.strip, new_items))
+            new_items = list(filter(lambda s: len(s) > 0, new_items))
+
+        os.remove(".todotempedit")
+
+        return item, new_items
+
+    def list_edit_multi(lst, title):
+        item = Cli.list_select_multi(lst, title=title)
+
+        if len(item) == 0:
+            return None, None
+
+        with open(".todotempedit", 'w') as f:
+            f.write('\n\n'.join(item))
 
         os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
 
@@ -498,6 +561,16 @@ def main():
             print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], False))
         elif sys.argv[1] == 'F':
             print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], True))
+        elif sys.argv[1] == 'e':
+            item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], False), "Select items to edit")
+
+            if item is not None:
+                q.item_edit(item, items)
+        elif sys.argv[1] == 'E':
+            item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], True), "Select items to edit")
+
+            if item is not None:
+                q.item_edit(item, items)
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
             for item in Cli.list_select_multi(q.get_done(), "Undo:"):
@@ -509,10 +582,10 @@ def main():
             if Cli.yn('Clear "DONE"?'):
                 q.clear_done()
         elif sys.argv[1] == 'e':
-            item, items = Cli.list_edit(q.get_todo(), "Select an item to edit")
+            item, items = Cli.list_edit_multi(q.get_todo(), "Select items to edit")
 
             if item is not None:
-                q.item_edit(item, *items)
+                q.item_edit(item, items)
         elif sys.argv[1] == 'm':  # more
             print(TextFormat.format_complete(q))
         elif sys.argv[1] == "?":
