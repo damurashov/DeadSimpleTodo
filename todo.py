@@ -34,6 +34,8 @@ def list_remove_item(l, item):
 
 class Color:
 
+    SEARCH_HIGHLIGHT = [colorama.Back.CYAN, colorama.Fore.BLACK]
+
     @staticmethod
     def colorize_wrap(text, *colors):
         return "".join(colors) + text + colorama.Style.RESET_ALL
@@ -57,12 +59,12 @@ class Color:
         return Color.colorize_wrap(s, colorama.Style.BRIGHT)
 
     @staticmethod
-    def colorize(text: str, rules=RULES):
+    def colorize(text: str, rules=RULES, re_flags=0):
         for rule, formatter in rules:
             chunks = []
             pos_last = 0
 
-            for m in re.finditer(rule, text):
+            for m in re.finditer(rule, text, flags=re_flags):
                 chunks = Color._chunk_append(chunks, text, pos_last, *m.span(0), formatter)
                 pos_last = m.span(0)[1]
 
@@ -132,10 +134,20 @@ class TextFormat:
         else:
             adjust_case = lambda x: x.lower()
 
+        def colorize_search_highlight(text):
+            # if all(map(lambda q: adjust_case(q) == adjust_case(text), queries)):
+            #     return Color.colorize_wrap(text, *Color.SEARCH_HIGHLIGHT)
+
+            for q in queries:
+                text = Color.colorize(text, [[q, lambda t: Color.colorize_wrap(t, *Color.SEARCH_HIGHLIGHT)]], 0 if match_case else re.IGNORECASE)
+
+            return text
+
         formatters_todo = [
             lambda t, *args, **kwargs: t if all(map(lambda q: adjust_case(q) in adjust_case(t), queries)) else None,  # Search for entries that satisfy the query
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
-            lambda t, *args, **kwargs: Color.colorize(t)
+            lambda t, *args, **kwargs: Color.colorize(t, [[r'\w+', colorize_search_highlight]]),
+            lambda t, *args, **kwargs: Color.colorize(t),
         ]
 
         return TextFormat._format(queue, formatters_todo)
