@@ -67,6 +67,54 @@ class Color:
 
 
 class TextFormat:
+
+    @staticmethod
+    def task_format(q, task, formatters):
+        ret = task
+
+        for fmt in formatters:
+            ret = fmt(ret, **q.tasks["info"][task])
+
+            if ret is None:
+                return None
+
+        return ret
+
+    @staticmethod
+    def _format(q, formatters_todo, formatters_done):
+        formatted = ["TODO:"]
+        formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_todo), q.tasks["todo"]))
+        formatted += ["DONE:"]
+        formatted += list(map(lambda t: TextFormat.task_format(q, formatters_done), q.tasks["done"]))
+        formatted = list(filter(lambda t: t is not None, formatted))
+        formatted = "\n".join(formatted)
+
+        return formatted
+
+    @staticmethod
+    def format_complete(q):
+        formatters_todo = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+        formatters_done = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
+        ]
+
+        return TextFormat._format(q, formatters_todo, formatters_done)
+
+    @staticmethod
+    def format_short(q):
+        formatters_todo = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+        formatters_done = [
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
+        ]
+
+        return TextFormat._format(q, formatters_todo, formatters_done)
+
     @staticmethod
     def get_multiline_splitter(s):
         if re.search(r'\r\n', s) is not None:
@@ -252,53 +300,6 @@ class Queue:
 
         return self.tasks["info"][task][infokey]
 
-    @staticmethod
-    def task_format(q, task, formatters):
-        ret = task
-
-        for fmt in formatters:
-            ret = fmt(ret, **q.tasks["info"][task])
-
-            if ret is None:
-                return None
-
-        return ret
-
-    @staticmethod
-    def _format(q, formatters_todo, formatters_done):
-        formatted = ["TODO:"]
-        formatted += list(map(lambda t: Queue.task_format(q, t, formatters_todo), q.tasks["todo"]))
-        formatted += ["DONE:"]
-        formatted += list(map(lambda t: Queue.task_format(q, formatters_done), q.tasks["done"]))
-        formatted = list(filter(lambda t: t is not None, formatted))
-        formatted = "\n".join(formatted)
-
-        return formatted
-
-    @staticmethod
-    def format_complete(q):
-        formatters_todo = [
-            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
-            lambda t, *args, **kwargs: Color.colorize(t)
-        ]
-        formatters_done = [
-            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
-        ]
-
-        return Queue._format(q, formatters_todo, formatters_done)
-
-    @staticmethod
-    def format_short(q):
-        formatters_todo = [
-            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True),
-            lambda t, *args, **kwargs: Color.colorize(t)
-        ]
-        formatters_done = [
-            lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
-        ]
-
-        return Queue._format(q, formatters_todo, formatters_done)
-
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
         formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
@@ -468,7 +469,7 @@ def main():
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
-        print(Queue.format_short(q))
+        print(TextFormat.format_complete(q))
 
     q.save(from_here)
 
