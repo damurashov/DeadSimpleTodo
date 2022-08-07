@@ -81,11 +81,14 @@ class TextFormat:
         return ret
 
     @staticmethod
-    def _format(q, formatters_todo, formatters_done):
+    def _format(q, formatters_todo, formatters_done=None):
         formatted = ["TODO:"]
         formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_todo), q.tasks["todo"]))
-        formatted += ["DONE:"]
-        formatted += list(map(lambda t: TextFormat.task_format(q, formatters_done), q.tasks["done"]))
+
+        if formatters_done is not None:
+            formatted += ["DONE:"]
+            formatted += list(map(lambda t: TextFormat.task_format(q, formatters_done), q.tasks["done"]))
+
         formatted = list(filter(lambda t: t is not None, formatted))
         formatted = "\n".join(formatted)
 
@@ -114,6 +117,21 @@ class TextFormat:
         ]
 
         return TextFormat._format(q, formatters_todo, formatters_done)
+
+    @staticmethod
+    def task_format_complete_search_and(queue, queries, match_case):
+        if match_case:
+            adjust_case = lambda x: x
+        else:
+            adjust_case = lambda x: x.lower()
+
+        formatters_todo = [
+            lambda t, *args, **kwargs: t if all(map(lambda q: adjust_case(q) in adjust_case(t), queries)) else None,  # Search for entries that satisfy the query
+            lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
+            lambda t, *args, **kwargs: Color.colorize(t)
+        ]
+
+        return TextFormat._format(q, formatters_todo)
 
     @staticmethod
     def get_multiline_splitter(s):
