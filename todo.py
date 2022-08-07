@@ -135,9 +135,6 @@ class TextFormat:
             adjust_case = lambda x: x.lower()
 
         def colorize_search_highlight(text):
-            # if all(map(lambda q: adjust_case(q) == adjust_case(text), queries)):
-            #     return Color.colorize_wrap(text, *Color.SEARCH_HIGHLIGHT)
-
             for q in queries:
                 text = Color.colorize(text, [[q, lambda t: Color.colorize_wrap(t, *Color.SEARCH_HIGHLIGHT)]], 0 if match_case else re.IGNORECASE)
 
@@ -146,8 +143,8 @@ class TextFormat:
         formatters_todo = [
             lambda t, *args, **kwargs: t if all(map(lambda q: adjust_case(q) in adjust_case(t), queries)) else None,  # Search for entries that satisfy the query
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
-            lambda t, *args, **kwargs: Color.colorize(t, [[r'\w+', colorize_search_highlight]]),
             lambda t, *args, **kwargs: Color.colorize(t),
+            lambda t, *args, **kwargs: Color.colorize(t, [[r'\w+', colorize_search_highlight]]),
         ]
 
         return TextFormat._format(queue, formatters_todo)
