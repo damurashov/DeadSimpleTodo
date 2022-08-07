@@ -98,7 +98,7 @@ class TextFormat:
         due = kwargs.pop("due", None)
         details = kwargs.pop("details", "")
         header = kwargs.pop("header")
-        header_col_width = 50
+        header_col_width = 30
 
         if kwargs.pop("istodo"):
             marker = " + "
@@ -110,7 +110,6 @@ class TextFormat:
 
         formatted = [marker, header, details]
         formatted = [["", "." * header_col_width, ""]] + [formatted]  # Hack: artificially extend the length of the header
-        Log.debug(formatted)
         ret = tabulate.tabulate(formatted, tablefmt="plain", maxcolwidths=[None, header_col_width, None])
         ret = TextFormat.split_first_line(ret)[1]  # Remove the artificial row
 
