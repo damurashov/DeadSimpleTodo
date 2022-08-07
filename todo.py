@@ -187,6 +187,9 @@ class TextFormat:
         if len(details) > 0:
             header = Color.colorize_bold(header)
 
+        if due is not None:
+            header = "(%s) %s" % (DateTime.deadline_format_remaining(due), header)
+
         details = textwrap.indent(details, ' ')
         header = header + '\n' + details
 
