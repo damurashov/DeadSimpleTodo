@@ -3,6 +3,7 @@
 
 import sys
 import os
+from tkinter import W
 from simple_term_menu import TerminalMenu
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -13,6 +14,7 @@ from dateutil.parser import parse as date_parse
 import tabulate
 import colorama
 import re
+from generic import Log
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -92,18 +94,24 @@ class TextFormat:
         return re.split(TextFormat.get_multiline_splitter(s), s, flags=re.MULTILINE)
 
     @staticmethod
-    def task_format_filter_default(task, **kwargs):
+    def task_format_filter_default(task, *args, **kwargs):
         due = kwargs.pop("due", None)
         details = kwargs.pop("details", "")
+        header = kwargs.pop("header")
 
         if kwargs.pop("istodo"):
             marker = " + "
         else:
             marker = " ✓ "
 
-        formatted = [marker, task, details]
+        if due is not None:
+            header += "\n" + DateTime.deadline_format_remaining(due)
 
-        return tabulate.tabulate(formatted, maxcolwidths=[None, 20, None])
+        formatted = [marker, header, details]
+        Log.debug(formatted)
+        ret = tabulate.tabulate([formatted], tablefmt="plain", maxcolwidths=[None, 40, None])
+
+        return ret
 
 
 class DateTime:
@@ -226,36 +234,29 @@ class Queue:
 
         return self.tasks["info"][task][infokey]
 
-    def __str__(self):
-        ret = ""
-        ret += "TODO:\n"
+    def task_format(self, task, formatters):
+        ret = task
 
-        for i in self.tasks["todo"]:
+        for fmt in formatters:
+            ret = fmt(ret, **self.tasks["info"][task])
 
-            deadline = self._task_get_deadline(i)
-            if deadline is not None:
-                deadline = "(%s) " % DateTime.deadline_format_remaining(deadline)
-            else:
-                deadline = ""
-
-            ret += " + %s%s" % (deadline, i)
-            info = self.tasks["info"][i]
-
-            for k, v in info.items():
-                ret += " | " + str(k) + ": " + str(v)
-
-            ret += '\n'
-
-        ret += "DONE:\n"
-
-        for i in self.tasks["done"]:
-            ret += " ✓ " + i + '\n'
-
-        # Colorize
-        lines = list(map(lambda l: Color.colorize(l), re.split(r"[\r\n]+", ret)))
-        ret = "\n".join(lines)
+            if ret is None:
+                return None
 
         return ret
+
+    def __str__(self):
+        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
+        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
+        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
+        formatted = ["TODO:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
+        formatted += ["DONE:"]
+        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
+        formatted = list(filter(lambda t: t is not None, formatted))
+        formatted = "\n".join(formatted)
+
+        return formatted
 
     def undo(self, item):
         list_remove_item(self.tasks["done"], item)
@@ -281,7 +282,6 @@ class Queue:
             for t in self.tasks[category]:
                 if t not in self.tasks["info"].keys():
                     self.tasks["info"][t] = Queue._task_parse_info(t)
-
 
     def add(self, task):
         """
@@ -324,7 +324,8 @@ class Cli:
 
     @staticmethod
     def list_select_multi(items, title):
-        item_ids = TerminalMenu(items, title=title, multi_select=True).show()
+        items_short = list(map(lambda i: TextFormat.split_first_line(i)[0], items))
+        item_ids = TerminalMenu(items_short, title=title, multi_select=True).show()
 
         if item_ids is None:
             return []
