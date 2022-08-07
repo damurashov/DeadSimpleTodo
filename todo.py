@@ -397,12 +397,14 @@ class Queue:
         self.tasks["todo"] += [task]
         self._sync_task_info()
 
-    def item_edit(self, item, *items):
+    def item_edit(self, items_before, items_after):
         """
         Edit/Split item
         """
-        list_remove_item(self.tasks["todo"], item)
-        self.tasks["todo"].extend(list(items))
+        for item in items_before:
+            list_remove_item(self.tasks["todo"], item)
+
+        self.tasks["todo"].extend(list(items_after))
         self._sync_task_info()
 
     def get_done(self):
@@ -533,10 +535,10 @@ def main():
             if Cli.yn('Clear "DONE"?'):
                 q.clear_done()
         elif sys.argv[1] == 'e':
-            item, items = Cli.list_edit(q.get_todo(), "Select an item to edit")
+            item, items = Cli.list_edit_multi(q.get_todo(), "Select items to edit")
 
             if item is not None:
-                q.item_edit(item, *items)
+                q.item_edit(item, items)
         elif sys.argv[1] == 'm':  # more
             print(TextFormat.format_complete(q))
         elif sys.argv[1] == "?":
