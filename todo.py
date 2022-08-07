@@ -257,12 +257,13 @@ class Queue:
                 q = Queue(json.loads(f.read()))
 
                 if "version" not in q.tasks.keys():
-                    q._sync_task_info()
+                    q._sync_task_info(force_update=True)
                 elif q.tasks["version"] != VERSION:
-                    q._sync_task_info()
+                    q._sync_task_info(force_update=True)
 
-                return Queue(json.loads(f.read()))
-        except:
+                return q
+        except Exception as e:
+            Log.error(Queue, "got exception", str(e))
             return Queue({
                 "todo": [],
                 "done": [],
@@ -349,7 +350,7 @@ class Queue:
         self.tasks["done"].append(item)
         self._sync_task_info()
 
-    def _sync_task_info(self):
+    def _sync_task_info(self, force_update=False):
         stall_info = []
 
         for k in self.tasks["info"].keys():
@@ -361,7 +362,7 @@ class Queue:
 
         for category in ["todo", "done"]:
             for t in self.tasks[category]:
-                if t not in self.tasks["info"].keys():
+                if t not in self.tasks["info"].keys() or force_update:
                     self.tasks["info"][t] = Queue._task_parse_info(t)
 
     def add(self, task):
