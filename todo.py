@@ -261,7 +261,7 @@ class Queue:
                 elif q.tasks["version"] != VERSION:
                     q._sync_task_info()
 
-                return Queue(json.loads(f.read()))
+                return q
         except:
             return Queue({
                 "todo": [],

@@ -1,17 +1,23 @@
 {
     "todo": [
-        "A\nB\nC",
-        "D"
+        "A IMPORTANT very very important And now I will extend the text tomorrow\nFirst important thing\nSecond important thing",
+        "D\nThis is important to, but we will not highlight it",
+        "This is a task also\nAnd let's make it multiline"
     ],
     "done": [],
     "info": {
-        "A\nB\nC": {
-            "header": "A",
-            "details": "B\nC"
-        },
-        "D": {
+        "D\nThis is important to, but we will not highlight it": {
             "header": "D",
-            "details": ""
+            "details": "This is important to, but we will not highlight it"
+        },
+        "A IMPORTANT very very important And now I will extend the text tomorrow\nFirst important thing\nSecond important thing": {
+            "due": "2022-08-08 09:00",
+            "header": "A IMPORTANT very very important And now I will extend the text tomorrow",
+            "details": "First important thing\nSecond important thing"
+        },
+        "This is a task also\nAnd let's make it multiline": {
+            "header": "This is a task also",
+            "details": "And let's make it multiline"
         }
     }
 }
