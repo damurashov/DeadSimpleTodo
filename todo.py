@@ -19,7 +19,7 @@ from generic import Log
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 CURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), TIME_FORMAT)
-VERSION = "1.4"
+VERSION = "1.4.1"
 tabulate.PRESERVE_WHITESPACE = True
 
 
