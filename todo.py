@@ -371,6 +371,18 @@ class Queue:
 
         return self.tasks["info"][task][infokey]
 
+    def search_and(self, queries, match_case):
+        if match_case:
+            adjust_case = lambda x: x
+        else:
+            adjust_case = lambda x: x.lower()
+
+        queries_check = lambda t: all(map(lambda q: adjust_case(q) in adjust_case(t), queries))
+        map_search_match = map(lambda t: t if queries_check(t) else None, self.tasks["todo"])
+        map_search_filter = filter(lambda t: t is not None, map_search_match)
+
+        return list(map_search_filter)
+
     def __str__(self):
         formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
         formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
@@ -544,6 +556,11 @@ def main():
             print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], False))
         elif sys.argv[1] == 'F':
             print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], True))
+        elif sys.argv[1] == 'e':
+            item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], False), "Select items to edit")
+
+            if item is not None:
+                q.item_edit(item, items)
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
             for item in Cli.list_select_multi(q.get_done(), "Undo:"):
