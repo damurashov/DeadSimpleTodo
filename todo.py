@@ -15,6 +15,7 @@ import tabulate
 import colorama
 import re
 from generic import Log
+import functools
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -140,6 +141,11 @@ class TextFormat:
             return r'\r\n'
 
         return r'\n'
+
+    @staticmethod
+    def split_multiline(s):
+        assert len(s) > 0
+        return re.split(TextFormat.get_multiline_splitter(s), s, flags=re.MULTILINE)
 
     @staticmethod
     def split_double_multiline(s):
@@ -302,7 +308,14 @@ class Queue:
     @staticmethod
     def _task_parse_info(task):
         ret = dict()
-        deadline = DateTime.parse_datetime(task)
+
+        deadline = None
+        for d in map(lambda d: DateTime.parse_datetime(d), TextFormat.split_multiline(task)):
+            if d is not None:
+                if deadline is None:
+                    deadline = d
+                elif d < deadline:
+                    deadline = d
 
         if deadline:
             ret["due"] = datetime.datetime.strftime(deadline, TIME_FORMAT)
