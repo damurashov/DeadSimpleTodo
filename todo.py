@@ -479,6 +479,26 @@ class Cli:
 
         return item, new_items
 
+    def list_edit_multi(lst, title):
+        item = Cli.list_select_multi(lst, title=title)
+
+        if len(item) == 0:
+            return None, None
+
+        with open(".todotempedit", 'w') as f:
+            f.write('\n\n'.join(item))
+
+        os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
+
+        with open(".todotempedit") as f:
+            new_items = TextFormat.split_double_multiline(f.read())
+            new_items = list(map(str.strip, new_items))
+            new_items = list(filter(lambda s: len(s) > 0, new_items))
+
+        os.remove(".todotempedit")
+
+        return item, new_items
+
 
 def main():
     if len(sys.argv) > 1:
