@@ -561,6 +561,11 @@ def main():
 
             if item is not None:
                 q.item_edit(item, items)
+        elif sys.argv[1] == 'E':
+            item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], True), "Select items to edit")
+
+            if item is not None:
+                q.item_edit(item, items)
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
             for item in Cli.list_select_multi(q.get_done(), "Undo:"):
