@@ -256,7 +256,7 @@ class DateTime:
         expired = delta.total_seconds() < 0
         delta = datetime.timedelta(seconds=abs(delta.total_seconds()))
         resoultion_mapping = [
-            (datetime.timedelta(weeks=8), lambda d: "%d months" % int(d.days / 30)),
+            (datetime.timedelta(weeks=9), lambda d: "%d months" % int(d.days / 30)),
             (datetime.timedelta(weeks=2), lambda d: "%d weeks" % int(d.days / 7)),
             (datetime.timedelta(days=2), lambda d: "%d days" % int(d.days)),
             (datetime.timedelta(hours=2), lambda d: "%d hours" % int(d.total_seconds() / 3600)),
