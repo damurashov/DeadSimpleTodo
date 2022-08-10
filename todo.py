@@ -102,7 +102,7 @@ class TextFormat:
         return ret
 
     @staticmethod
-    def _format(q, formatters_todo, formatters_done=None):
+    def _queue_format(q, formatters_todo, formatters_done=None):
         formatted = ["TODO:"]
         formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_todo), q.tasks["todo"]))
 
@@ -116,7 +116,7 @@ class TextFormat:
         return formatted
 
     @staticmethod
-    def format_complete(q):
+    def queue_format_complete(q):
         formatters_todo = [
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
             lambda t, *args, **kwargs: Color.colorize(t)
@@ -125,10 +125,10 @@ class TextFormat:
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
         ]
 
-        return TextFormat._format(q, formatters_todo, formatters_done)
+        return TextFormat._queue_format(q, formatters_todo, formatters_done)
 
     @staticmethod
-    def format_short(q):
+    def queue_format_short(q):
         formatters_todo = [
             lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True),
             lambda t, *args, **kwargs: Color.colorize(t)
@@ -137,7 +137,7 @@ class TextFormat:
             lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
         ]
 
-        return TextFormat._format(q, formatters_todo, formatters_done)
+        return TextFormat._queue_format(q, formatters_todo, formatters_done)
 
     @staticmethod
     def task_format_complete_search_and(queue, queries, match_case):
@@ -159,7 +159,7 @@ class TextFormat:
             lambda t, *args, **kwargs: Color.colorize(t, [[r'\w+', colorize_search_highlight]]),
         ]
 
-        return TextFormat._format(queue, formatters_todo)
+        return TextFormat._queue_format(queue, formatters_todo)
 
     @staticmethod
     def get_multiline_splitter(s):
@@ -615,11 +615,11 @@ def main():
             if item is not None:
                 q.item_edit(item, items)
         elif sys.argv[1] == 'm':  # more
-            print(TextFormat.format_complete(q))
+            print(TextFormat.queue_format_complete(q))
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
-        print(TextFormat.format_short(q))
+        print(TextFormat.queue_format_short(q))
 
     q.save(from_here)
 
