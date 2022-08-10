@@ -455,6 +455,12 @@ class Cli:
 
     @staticmethod
     def list_select(items, title):
+
+        if len(items) == 0:
+            return None
+        elif len(items) == 1:
+            return items[0]
+
         items_short = list(map(lambda i: TextFormat.split_first_line(i)[0], items))
         item_id = TerminalMenu(items_short, title=title).show()
 
@@ -467,6 +473,11 @@ class Cli:
 
     @staticmethod
     def list_select_multi(items, title):
+        if len(items) == 0:
+            return None
+        elif len(items) == 1:
+            return [items[0]]
+
         items_short = list(map(lambda i: TextFormat.split_first_line(i)[0], items))
         item_ids = TerminalMenu(items_short, title=title, multi_select=True).show()
 
