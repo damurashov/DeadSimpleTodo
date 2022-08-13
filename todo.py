@@ -527,14 +527,14 @@ class Cli:
         return item, new_items
 
     def list_edit_multi(lst, title):
-        item = Cli.list_select_multi(lst, title=title)
+        items = Cli.list_select_multi(lst, title=title)
 
-        if len(item) == 0:
+        if len(items) == 0:
             return None, None
 
-        new_items = Cli._item_edit_external_editor(item)
+        new_items = Cli._item_edit_external_editor(items)
 
-        return item, new_items
+        return items, new_items
 
 
 def main():
