@@ -461,7 +461,7 @@ class Cli:
     @staticmethod
     def list_select_multi(items, title):
         if len(items) == 0:
-            return None
+            return []
         elif len(items) == 1:
             return [items[0]]
 
