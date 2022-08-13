@@ -102,7 +102,7 @@ class TextFormat:
         return ret
 
     @staticmethod
-    def _format(q, formatters_todo, formatters_done=None):
+    def _queue_format(q, formatters_todo, formatters_done=None):
         formatted = ["TODO:"]
         formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_todo), q.tasks["todo"]))
 
@@ -116,7 +116,7 @@ class TextFormat:
         return formatted
 
     @staticmethod
-    def format_complete(q):
+    def queue_format_complete(q):
         formatters_todo = [
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True),
             lambda t, *args, **kwargs: Color.colorize(t)
@@ -125,10 +125,10 @@ class TextFormat:
             lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
         ]
 
-        return TextFormat._format(q, formatters_todo, formatters_done)
+        return TextFormat._queue_format(q, formatters_todo, formatters_done)
 
     @staticmethod
-    def format_short(q):
+    def queue_format_short(q):
         formatters_todo = [
             lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=True),
             lambda t, *args, **kwargs: Color.colorize(t)
@@ -137,7 +137,7 @@ class TextFormat:
             lambda t, *args, **kwargs: TextFormat.task_format_filter_short(t, *args, **kwargs, istodo=False)
         ]
 
-        return TextFormat._format(q, formatters_todo, formatters_done)
+        return TextFormat._queue_format(q, formatters_todo, formatters_done)
 
     @staticmethod
     def task_format_complete_search_and(queue, queries, match_case):
@@ -159,7 +159,7 @@ class TextFormat:
             lambda t, *args, **kwargs: Color.colorize(t, [[r'\w+', colorize_search_highlight]]),
         ]
 
-        return TextFormat._format(queue, formatters_todo)
+        return TextFormat._queue_format(queue, formatters_todo)
 
     @staticmethod
     def get_multiline_splitter(s):
@@ -385,19 +385,6 @@ class Queue:
 
         return list(map_search_filter)
 
-    def __str__(self):
-        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
-        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
-        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
-        formatted = ["TODO:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
-        formatted += ["DONE:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
-        formatted = list(filter(lambda t: t is not None, formatted))
-        formatted = "\n".join(formatted)
-
-        return formatted
-
     def undo(self, item):
         list_remove_item(self.tasks["done"], item)
         self.tasks["todo"].append(item)
@@ -474,7 +461,7 @@ class Cli:
     @staticmethod
     def list_select_multi(items, title):
         if len(items) == 0:
-            return None
+            return []
         elif len(items) == 1:
             return [items[0]]
 
@@ -514,45 +501,40 @@ class Cli:
         entries = list(map(lambda i: [Color.colorize_wrap(i[0], *Color.HELP_ENTRY), i[1]], entries))
         print(tabulate.tabulate(entries, tablefmt="plain", colalign=["left", "left"]))
 
+    def _item_edit_external_editor(items):
+        with open(".todotempedit", 'w') as f:
+            f.write('\n\n'.join(items))
+
+        os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
+
+        with open(".todotempedit") as f:
+            new_items = TextFormat.split_double_multiline(f.read())
+            new_items = list(map(str.strip, new_items))
+            new_items = list(filter(lambda s: len(s) > 0, new_items))
+
+        os.remove(".todotempedit")
+
+        return new_items
+
     def list_edit(lst, title):
         item = Cli.list_select(lst, title=title)
 
         if item is None:
             return None, None
 
-        with open(".todotempedit", 'w') as f:
-            f.write(item)
-
-        os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
-
-        with open(".todotempedit") as f:
-            new_items = TextFormat.split_double_multiline(f.read())
-            new_items = list(map(str.strip, new_items))
-            new_items = list(filter(lambda s: len(s) > 0, new_items))
-
-        os.remove(".todotempedit")
+        new_items = Cli._item_edit_external_editor([item])
 
         return item, new_items
 
     def list_edit_multi(lst, title):
-        item = Cli.list_select_multi(lst, title=title)
+        items = Cli.list_select_multi(lst, title=title)
 
-        if len(item) == 0:
+        if len(items) == 0:
             return None, None
 
-        with open(".todotempedit", 'w') as f:
-            f.write('\n\n'.join(item))
+        new_items = Cli._item_edit_external_editor(items)
 
-        os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
-
-        with open(".todotempedit") as f:
-            new_items = TextFormat.split_double_multiline(f.read())
-            new_items = list(map(str.strip, new_items))
-            new_items = list(filter(lambda s: len(s) > 0, new_items))
-
-        os.remove(".todotempedit")
-
-        return item, new_items
+        return items, new_items
 
 
 def main():
@@ -615,11 +597,11 @@ def main():
             if item is not None:
                 q.item_edit(item, items)
         elif sys.argv[1] == 'm':  # more
-            print(TextFormat.format_complete(q))
+            print(TextFormat.queue_format_complete(q))
         elif sys.argv[1] == "?":
             Cli.print_help()
     elif len(sys.argv) == 1:
-        print(TextFormat.format_short(q))
+        print(TextFormat.queue_format_short(q))
 
     q.save(from_here)
 
