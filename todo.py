@@ -501,14 +501,9 @@ class Cli:
         entries = list(map(lambda i: [Color.colorize_wrap(i[0], *Color.HELP_ENTRY), i[1]], entries))
         print(tabulate.tabulate(entries, tablefmt="plain", colalign=["left", "left"]))
 
-    def list_edit(lst, title):
-        item = Cli.list_select(lst, title=title)
-
-        if item is None:
-            return None, None
-
+    def _item_edit_external_editor(items):
         with open(".todotempedit", 'w') as f:
-            f.write(item)
+            f.write('\n\n'.join(items))
 
         os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
 
@@ -518,6 +513,16 @@ class Cli:
             new_items = list(filter(lambda s: len(s) > 0, new_items))
 
         os.remove(".todotempedit")
+
+        return new_items
+
+    def list_edit(lst, title):
+        item = Cli.list_select(lst, title=title)
+
+        if item is None:
+            return None, None
+
+        new_items = Cli._item_edit_external_editor([item])
 
         return item, new_items
 
@@ -527,17 +532,7 @@ class Cli:
         if len(item) == 0:
             return None, None
 
-        with open(".todotempedit", 'w') as f:
-            f.write('\n\n'.join(item))
-
-        os.system(Cli.TEXT_EDITOR + ' ' + ".todotempedit")
-
-        with open(".todotempedit") as f:
-            new_items = TextFormat.split_double_multiline(f.read())
-            new_items = list(map(str.strip, new_items))
-            new_items = list(filter(lambda s: len(s) > 0, new_items))
-
-        os.remove(".todotempedit")
+        new_items = Cli._item_edit_external_editor(item)
 
         return item, new_items
 
