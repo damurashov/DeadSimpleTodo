@@ -385,19 +385,6 @@ class Queue:
 
         return list(map_search_filter)
 
-    def __str__(self):
-        formatter_default_todo = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=True)
-        formatter_default_done = lambda t, *args, **kwargs: TextFormat.task_format_filter_default(t, *args, **kwargs, istodo=False)
-        formatter_colorize = lambda t, *args, **kwargs: Color.colorize(t)
-        formatted = ["TODO:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_todo, formatter_colorize]), self.tasks["todo"]))
-        formatted += ["DONE:"]
-        formatted += list(map(lambda t: self.task_format(t, [formatter_default_done]), self.tasks["done"]))
-        formatted = list(filter(lambda t: t is not None, formatted))
-        formatted = "\n".join(formatted)
-
-        return formatted
-
     def undo(self, item):
         list_remove_item(self.tasks["done"], item)
         self.tasks["todo"].append(item)
