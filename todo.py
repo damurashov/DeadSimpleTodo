@@ -545,11 +545,15 @@ class Cli:
             q.add(task)
 
     @staticmethod
-    def queue_search_case_sensitive(q):
-        item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], True), "Select items to edit")
+    def queue_search(q, case_sensitive):
+        item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], case_sensitive), "Select items to edit")
 
         if item is not None:
             q.item_edit(item, items)
+
+            return True
+
+        return False
 
 
 def main():
@@ -571,12 +575,9 @@ def main():
         elif sys.argv[1] == 'F':
             print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], True))
         elif sys.argv[1] == 'e':
-            item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], False), "Select items to edit")
-
-            if item is not None:
-                q.item_edit(item, items)
+            Cli.queue_search(q, False)
         elif sys.argv[1] == 'E':
-            Cli.queue_search_case_sensitive(q)
+            Cli.queue_search(q, True)
         elif sys.argv[1] == 'u':  # Filter-undo
             for item in Cli.list_select_multi(q.search_and(sys.argv[2:], False, "done"), "Undo:"):
                 q.undo(item)
@@ -589,6 +590,10 @@ def main():
         elif sys.argv[1] == 'D':  # Case-sensitive filter-do
             for item in Cli.list_select_multi(q.search_and(sys.argv[2:], True), "Done: "):
                 q.do(item)
+        elif sys.argv[1].lower() == "ae":
+            if not Cli.queue_search(q, False):
+                Cli.queue_add(q, sys.argv[2:])
+                Cli.queue_search(q, True)
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
             for item in Cli.list_select_multi(q.get_done(), "Undo:"):
