@@ -536,6 +536,14 @@ class Cli:
 
         return items, new_items
 
+    @staticmethod
+    def queue_add(q, task):
+        task = ' '.join(task)
+        task = task.strip()
+
+        if len(task):
+            q.add(task)
+
 
 def main():
     if len(sys.argv) > 1:
@@ -550,11 +558,7 @@ def main():
 
     if len(sys.argv) >= 3:
         if sys.argv[1] == 'a':  # add
-            task = sys.argv[2:]
-            task = ' '.join(task)
-            task = task.strip()
-            if len(task):
-                q.add(task)
+            Cli.queue_add(q, sys.argv[2:])
         elif sys.argv[1] == 'f':  # filter
             print(TextFormat.task_format_complete_search_and(q, sys.argv[2:], False))
         elif sys.argv[1] == 'F':
