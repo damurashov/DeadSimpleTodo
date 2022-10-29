@@ -544,6 +544,13 @@ class Cli:
         if len(task):
             q.add(task)
 
+    @staticmethod
+    def queue_search_case_sensitive(q):
+        item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], True), "Select items to edit")
+
+        if item is not None:
+            q.item_edit(item, items)
+
 
 def main():
     if len(sys.argv) > 1:
@@ -569,10 +576,7 @@ def main():
             if item is not None:
                 q.item_edit(item, items)
         elif sys.argv[1] == 'E':
-            item, items = Cli.list_edit_multi(q.search_and(sys.argv[2:], True), "Select items to edit")
-
-            if item is not None:
-                q.item_edit(item, items)
+            Cli.queue_search_case_sensitive(q)
         elif sys.argv[1] == 'u':  # Filter-undo
             for item in Cli.list_select_multi(q.search_and(sys.argv[2:], False, "done"), "Undo:"):
                 q.undo(item)
