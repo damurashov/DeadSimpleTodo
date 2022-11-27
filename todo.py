@@ -488,6 +488,7 @@ class Cli:
             ["a ..", "Add"],
             ["e", "Edit in an external terminal editor \n(vim by default, tweak the source \nfile to replace)"],
             ["e ..", "Filter-edit"],
+            ["ae...", "Search for an already existing task using the keywords provided.\nIf none was found, add and open for edit"],
             ["E ..", "Filter-edit (case-sensitive)"],
             ["d", "Do. Mark tasks as done"],
             ["d..", "Filter-do"],
