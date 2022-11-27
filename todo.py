@@ -17,6 +17,7 @@ import re
 from generic import Log
 import shutil
 import textwrap
+import gzip
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -349,10 +350,14 @@ class Queue:
             except Exception:
                 pass
 
-            with open(str((Path(self.queue_dir) / ".tododump"
-                    / DUMP_DURRENT_TIME).resolve())
-                    + ".json", "w+") as f:
-                f.write(json.dumps(self.tasks, indent=4))
+            dump_file_path = str((Path(self.queue_dir) / ".tododump" \
+                / DUMP_DURRENT_TIME).resolve()) \
+                + ".json.gz"
+            with open(dump_file_path, "wb+") as f:
+                output = json.dumps(self.tasks, indent=4)
+                output = output.encode("raw_unicode_escape")
+                output = gzip.compress(output)
+                f.write(output)
 
     @staticmethod
     def _task_parse_info(task):
