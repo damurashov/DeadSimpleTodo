@@ -284,7 +284,9 @@ class Queue:
     QUEUE_FILE = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve() / "todo.json")
     tasks: dict
     queue_dir: str = None
-    dump: bool = False
+    dump: bool = False  # A flag which defines whether a backup will be saved.
+
+    # TODO: backup restore
 
     @staticmethod
     def load(from_here=False):
