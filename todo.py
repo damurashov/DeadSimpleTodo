@@ -20,7 +20,9 @@ import textwrap
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
+DUMP_TIME_FORMAT = "%Y%m%d%H%M%S"
 CURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), TIME_FORMAT)
+DUMP_DURRENT_TIME = datetime.datetime.strftime(datetime.datetime.now(), DUMP_TIME_FORMAT)
 VERSION = "1.5.0"
 tabulate.PRESERVE_WHITESPACE = True
 
@@ -279,20 +281,24 @@ class DateTime:
 
 @dataclass
 class Queue:
-    QUEUE_FILE = str(Path(os.path.dirname(os.path.realpath(__file__))) / "todo.json")
-
+    QUEUE_FILE = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve() / "todo.json")
     tasks: dict
+    queue_dir: str = None
+    dump: bool = False  # A flag which defines whether a backup will be saved.
+
+    # TODO: backup restore
 
     @staticmethod
     def load(from_here=False):
         if not from_here:
             queue_file = Queue.QUEUE_FILE
         else:
-            queue_file = str(Path(".") / "todo.json")
+            queue_file = str(Path(".").resolve() / "todo.json")
 
         try:
             with open(queue_file, 'r') as f:
-                q = Queue(json.loads(f.read()))
+                queue_dir = os.path.dirname(queue_file)
+                q = Queue(json.loads(f.read()), queue_dir=queue_dir)
 
                 if "version" not in q.tasks.keys():
                     q._sync_task_info(force_update=True)
@@ -336,6 +342,17 @@ class Queue:
 
         with open(queue_file, 'w') as f:
             f.write(json.dumps(self.tasks, indent=4))
+
+        if self.dump:
+            try:
+                os.mkdir(Path(self.queue_dir) / ".tododump")
+            except Exception:
+                pass
+
+            with open(str((Path(self.queue_dir) / ".tododump"
+                    / DUMP_DURRENT_TIME).resolve())
+                    + ".json", "w+") as f:
+                f.write(json.dumps(self.tasks, indent=4))
 
     @staticmethod
     def _task_parse_info(task):
@@ -386,11 +403,13 @@ class Queue:
         return list(map_search_filter)
 
     def undo(self, item):
+        self.dump = True
         list_remove_item(self.tasks["done"], item)
         self.tasks["todo"].append(item)
         self._sync_task_info()
 
     def do(self, item):
+        self.dump = True
         list_remove_item(self.tasks["todo"], item)
         self.tasks["done"].append(item)
         self._sync_task_info()
@@ -415,6 +434,7 @@ class Queue:
         """
         Ensures cohesion b/w `self.todo` and `self.task_info`
         """
+        self.dump = True
         self.tasks["todo"] += [task]
         self._sync_task_info()
 
@@ -422,6 +442,7 @@ class Queue:
         """
         Edit/Split item
         """
+        self.dump = True
         for item in items_before:
             list_remove_item(self.tasks["todo"], item)
 
@@ -435,6 +456,7 @@ class Queue:
         return self.tasks["todo"]
 
     def clear_done(self):
+        self.dump = True
         self.tasks["done"] = []
 
 class Cli:
@@ -488,6 +510,7 @@ class Cli:
             ["a ..", "Add"],
             ["e", "Edit in an external terminal editor \n(vim by default, tweak the source \nfile to replace)"],
             ["e ..", "Filter-edit"],
+            ["ae...", "Search for an already existing task using the keywords provided.\nIf none was found, add and open for edit"],
             ["E ..", "Filter-edit (case-sensitive)"],
             ["d", "Do. Mark tasks as done"],
             ["d..", "Filter-do"],
