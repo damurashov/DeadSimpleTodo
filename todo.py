@@ -61,6 +61,7 @@ class Color:
         [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color.colorize_wrap(text, colorama.Fore.BLUE)],
         [r"PENDING", lambda text: Color.colorize_wrap(text, colorama.Back.BLACK + colorama.Fore.WHITE)],
         [r"LOW.*[\n\r]", lambda text: Color.colorize_wrap(text, colorama.Fore.LIGHTBLACK_EX)],
+		[r"\*\*\w+\*\*", lambda text: Color.colorize_wrap(text, colorama.Style.BRIGHT)],
     ]
 
     @staticmethod
