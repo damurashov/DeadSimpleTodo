@@ -58,7 +58,9 @@ class Color:
     # This set of rules may be extended w/ any formatting code whatsoever
     RULES = [
         [r"IMPORTANT", lambda text: Color.colorize_wrap(text, colorama.Back.YELLOW)],
-        [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color.colorize_wrap(text, colorama.Fore.BLUE)]
+        [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color.colorize_wrap(text, colorama.Fore.BLUE)],
+        [r"PENDING", lambda text: Color.colorize_wrap(text, colorama.Back.BLUE)],
+        [r"LOW", lambda text: Color.colorize_wrap(text, colorama.Back.GRAY + colorama.Front.BLACK)],
     ]
 
     @staticmethod
