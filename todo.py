@@ -100,7 +100,7 @@ class TextFormat:
         ret = task
 
         for fmt in formatters:
-            ret = fmt(ret, **q.tasks["info"][task])
+            ret = fmt(ret, **q.task_info(task))
 
             if ret is None:
                 return None
@@ -317,6 +317,9 @@ class Queue:
                 "done": [],
                 "info": dict(),
             })
+
+    def task_info(self, task):
+        return self.tasks["info"][task]
 
     def todo_tasks(self):
         return self.tasks["todo"]
