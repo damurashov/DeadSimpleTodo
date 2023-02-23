@@ -401,17 +401,6 @@ class Queue:
 
         return ret
 
-    def task_get_info(self, task, infokey):
-        if task not in self.todo_tasks() and task not in self.done_tasks():
-            return None
-
-        assert task in self.tasks["info"]
-
-        if infokey not in self.tasks["info"][task]:
-            return None
-
-        return self.tasks["info"][task][infokey]
-
     def search_and(self, queries, match_case, category="todo"):
         assert category in ["todo", "done"]
         if match_case:
