@@ -61,7 +61,7 @@ class Color:
         [r"(?:(http|ftp|https):\/\/([\w\-_]+)?(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?", lambda text: Color.colorize_wrap(text, colorama.Fore.BLUE)],
         [r"PENDING", lambda text: Color.colorize_wrap(text, colorama.Back.BLACK + colorama.Fore.WHITE)],
         [r"LOW.*[\n\r]", lambda text: Color.colorize_wrap(text, colorama.Fore.LIGHTBLACK_EX)],
-		[r"\*\*\w+\*\*", lambda text: Color.colorize_wrap(text, colorama.Style.BRIGHT)],
+        [r"\*\*\w+\*\*", lambda text: Color.colorize_wrap(text, colorama.Style.BRIGHT)],
     ]
 
     @staticmethod
@@ -110,11 +110,11 @@ class TextFormat:
     @staticmethod
     def _queue_format(q, formatters_todo, formatters_done=None):
         formatted = ["TODO:"]
-        formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_todo), q.tasks["todo"]))
+        formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_todo), q.todo_tasks()))
 
         if formatters_done is not None:
             formatted += ["DONE:"]
-            formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_done), q.tasks["done"]))
+            formatted += list(map(lambda t: TextFormat.task_format(q, t, formatters_done), q.done_tasks()))
 
         formatted = list(filter(lambda t: t is not None, formatted))
         formatted = "\n".join(formatted)
@@ -318,6 +318,12 @@ class Queue:
                 "info": dict(),
             })
 
+    def todo_tasks(self):
+        return self.tasks["todo"]
+
+    def done_tasks(self):
+        return self.tasks["done"]
+
     def _task_get_deadline(self, task):
         if task not in self.tasks["info"]:
             return None
@@ -328,11 +334,11 @@ class Queue:
         return self.tasks["info"][task]["due"]
 
     def sort(self):
-        self.tasks["todo"].sort()
+        self.todo_tasks().sort()
 
         # Partition the list of tasks based on whether a task has a deadline
-        tasks_deadline = list(filter(lambda t: self._task_get_deadline(t) is not None, self.tasks["todo"]))
-        tasks_no_deadline = list(filter(lambda t: t not in tasks_deadline, self.tasks["todo"]))
+        tasks_deadline = list(filter(lambda t: self._task_get_deadline(t) is not None, self.todo_tasks()))
+        tasks_no_deadline = list(filter(lambda t: t not in tasks_deadline, self.todo_tasks()))
         tasks_deadline.sort(key=lambda t: date_parse(self._task_get_deadline(t)))
         self.tasks["todo"] = tasks_deadline + tasks_no_deadline
 
@@ -387,7 +393,7 @@ class Queue:
         return ret
 
     def task_get_info(self, task, infokey):
-        if task not in self.tasks["todo"] and task not in self.tasks["done"]:
+        if task not in self.todo_tasks() and task not in self.done_tasks():
             return None
 
         assert task in self.tasks["info"]
@@ -412,14 +418,14 @@ class Queue:
 
     def undo(self, item):
         self.dump = True
-        list_remove_item(self.tasks["done"], item)
-        self.tasks["todo"].append(item)
+        list_remove_item(self.done_tasks(), item)
+        self.todo_tasks().append(item)
         self._sync_task_info()
 
     def do(self, item):
         self.dump = True
-        list_remove_item(self.tasks["todo"], item)
-        self.tasks["done"].append(item)
+        list_remove_item(self.todo_tasks(), item)
+        self.done_tasks().append(item)
         self._sync_task_info()
 
     def _sync_task_info(self, force_update=False):
@@ -427,7 +433,7 @@ class Queue:
         self.tasks["version"] = VERSION
 
         for k in self.tasks["info"].keys():
-            if k not in self.tasks["todo"] and k not in self.tasks["done"]:
+            if k not in self.todo_tasks() and k not in self.done_tasks():
                 stall_info += [k]
 
         for si in stall_info:
@@ -452,16 +458,10 @@ class Queue:
         """
         self.dump = True
         for item in items_before:
-            list_remove_item(self.tasks["todo"], item)
+            list_remove_item(self.todo_tasks(), item)
 
-        self.tasks["todo"].extend(list(items_after))
+        self.todo_tasks().extend(list(items_after))
         self._sync_task_info()
-
-    def get_done(self):
-        return self.tasks["done"]
-
-    def get_todo(self):
-        return self.tasks["todo"]
 
     def clear_done(self):
         self.dump = True
@@ -627,16 +627,16 @@ def main():
                 Cli.queue_search(q, True)
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'u':  # undo
-            for item in Cli.list_select_multi(q.get_done(), "Undo:"):
+            for item in Cli.list_select_multi(q.done_tasks(), "Undo:"):
                 q.undo(item)
         elif sys.argv[1] == 'd':  # do
-            for item in Cli.list_select_multi(q.get_todo(), "Done: "):
+            for item in Cli.list_select_multi(q.todo_tasks(), "Done: "):
                 q.do(item)
         elif sys.argv[1] == "cd":  # clear done
             if Cli.yn('Clear "DONE"?'):
                 q.clear_done()
         elif sys.argv[1] == 'e':
-            item, items = Cli.list_edit_multi(q.get_todo(), "Select items to edit")
+            item, items = Cli.list_edit_multi(q.todo_tasks(), "Select items to edit")
 
             if item is not None:
                 q.item_edit(item, items)
