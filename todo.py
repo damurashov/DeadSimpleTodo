@@ -319,6 +319,12 @@ class Queue:
             })
 
     def task_info(self, task):
+        """
+        Returns a `dict` object w/ the following fields
+        - "header" (always present)
+        - "details" (optional)
+        - "due" (optional)
+        """
         return self.tasks["info"][task]
 
     def todo_tasks(self):
