@@ -321,7 +321,7 @@ class Queue:
     def task_info(self, task):
         """
         Returns a `dict` object w/ the following fields
-        - "header" (always present)
+        - "header"
         - "details" (optional)
         - "due" (optional)
         """
