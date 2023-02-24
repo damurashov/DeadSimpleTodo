@@ -342,7 +342,7 @@ class Queue:
 
         return self.tasks["info"][task]["due"]
 
-    def sort(self):
+    def _sort(self):
         self.todo_tasks().sort()
 
         # Partition the list of tasks based on whether a task has a deadline
@@ -352,7 +352,7 @@ class Queue:
         self.tasks["todo"] = tasks_deadline + tasks_no_deadline
 
     def save(self, here=False):
-        self.sort()
+        self._sort()
 
         if not here:
             queue_file = Queue.QUEUE_FILE
