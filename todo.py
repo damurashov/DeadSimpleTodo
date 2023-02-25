@@ -3,7 +3,6 @@
 
 import sys
 import os
-from tkinter import W
 from simple_term_menu import TerminalMenu
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -33,6 +32,12 @@ def list_remove_item(l, item):
         l.remove(item)
     except ValueError:
         pass
+
+def _dict_try_get_value(d, key):
+    try:
+        return d[key]
+    except KeyError:
+        return None
 
 
 class Color:
@@ -167,12 +172,34 @@ class TextFormat:
 
         return TextFormat._queue_format(queue, formatters_todo)
 
+    __DEFAULT_MULTILINE_SPLITTER = None
+
+    @staticmethod
+    def default_multiline_splitter():
+        """
+        Gets currently used default multiline splitter. Always returns a valid
+        value.
+        """
+
+        if TextFormat.__DEFAULT_MULTILINE_SPLITTER is None:
+            return '\n'
+        else:
+            return TextFormat.__DEFAULT_MULTILINE_SPLITTER
+
     @staticmethod
     def get_multiline_splitter(s):
+        """
+        Tries to infer line splitting format by the provided string.
+        As a side effect, sets a global variable `__DEFAULT_MULTILINE_SPLITTER`
+        """
         if re.search(r'\r\n', s) is not None:
-            return r'\r\n'
+            ret = r'\r\n'
+            TextFormat.__DEFAULT_MULTILINE_SPLITTER = '\r\n'
+        else:
+            ret = r'\n'
+            TextFormat.__DEFAULT_MULTILINE_SPLITTER = '\n'
 
-        return r'\n'
+        return ret
 
     @staticmethod
     def split_multiline(s):
@@ -182,7 +209,11 @@ class TextFormat:
     @staticmethod
     def split_double_multiline(s):
         assert len(s) > 0
-        return re.split(TextFormat.get_multiline_splitter(s) * 2, s, flags=re.MULTILINE)
+        ret = re.split(r'(?:' + TextFormat.get_multiline_splitter(s) +
+                          r'){2,}', s, flags=re.MULTILINE)
+        ret = list(filter(lambda s: len(s) != 0, ret))
+
+        return ret
 
     @staticmethod
     def split_first_line(s):
@@ -311,7 +342,7 @@ class Queue:
 
                 return q
         except Exception as e:
-            Log.error(Queue, "got exception", str(e))
+            Log.error(Queue, f"got exception", str(e))
             return Queue({
                 "todo": [],
                 "done": [],
@@ -381,7 +412,9 @@ class Queue:
     def _task_parse_info(task):
         ret = dict()
 
+        Log.debug("parsing info for task", task)
         deadline = None
+
         for d in map(lambda d: DateTime.parse_datetime(d), TextFormat.split_multiline(task)):
             if d is not None:
                 if deadline is None:
@@ -464,6 +497,194 @@ class Queue:
     def clear_done(self):
         self.dump = True
         self.tasks["done"] = []
+
+
+class PlainTextQueue(Queue):
+    QUEUE_FILE = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve() / "todo.txt")
+    _DONE_MARKER = "@done"
+    _DUE_MARKER = "@due"
+
+    @staticmethod
+    def load(from_here=False):
+        # Select working directory
+        if not from_here:
+            queue_file = PlainTextQueue.QUEUE_FILE
+        else:
+            queue_file = str(Path(".").resolve() / "todo.txt")
+
+        queue_dir = os.path.dirname(queue_file)
+
+        try:
+            with open(queue_file, 'r') as f:
+                tasks = dict()  # Backward-compatible dict-based data structure
+                tasks["done"] = []
+                tasks["todo"] = []
+                tasks["info"] = dict()
+                all_tasks = TextFormat.split_double_multiline(f.read())
+                all_tasks = list(map(lambda s: s.strip(), all_tasks))
+
+                Log.debug("all_tasks", all_tasks)
+                # Separate b/w "todo" and "done" tasks
+                for task in all_tasks:
+                    if PlainTextQueue._DONE_MARKER in task:
+                        tasks["done"].append(task)
+                    else:
+                        tasks["todo"].append(task)
+
+                    tasks["info"][task] = PlainTextQueue._task_parse_info(task)
+
+                ret = PlainTextQueue(tasks=tasks, queue_dir=queue_dir)
+                ret._sync_task_info(force_update=True)
+
+                return ret
+
+        except Exception as e:
+            Log.error(PlainTextQueue, "got exception", str(e))
+
+            return PlainTextQueue(
+                tasks={
+                    "todo": [],
+                    "done": [],
+                    "info": dict(),
+                },
+                queue_dir=queue_dir
+            )
+
+    def _sync_task_info(self, force_update=False):
+        stall_info = []
+        self.tasks["version"] = VERSION
+
+        for k in self.tasks["info"].keys():
+            if k not in self.todo_tasks() and k not in self.done_tasks():
+                stall_info += [k]
+
+        for si in stall_info:
+            self.tasks["info"].pop(si)
+
+        for category in ["todo", "done"]:
+            for t in self.tasks[category]:
+                if t not in self.tasks["info"].keys() or force_update:
+                    self.tasks["info"][t] = PlainTextQueue._task_parse_info(t)
+
+    def _serialized_task_info(self, task):
+        """
+        Produces a serialized metainfo for a task
+        """
+        lines = []
+        lines.append(self.tasks["info"][task]["header"])
+        lines.append(self.tasks["info"][task]["details"])
+        due = _dict_try_get_value(self.tasks["info"][task], "due")
+
+        if due is not None:
+            lines.append("@due " + str(due))
+
+        if task in self.tasks["done"]:
+            lines.append("@done")
+
+        lines = list(filter(lambda s: len(s), lines))
+
+        return TextFormat.default_multiline_splitter().join(lines)
+
+    def _as_serialized(self):
+        """
+        Converts the internal data structure into a restorable portable text
+        format
+        """
+        ret = self.todo_tasks() + self.done_tasks()
+        ret = list(map(self._serialized_task_info, ret))
+        multiline_splitter = TextFormat.default_multiline_splitter() * 2
+        ret = multiline_splitter.join(ret)
+
+        return ret
+
+    @staticmethod
+    def _task_parse_details(task):
+        def is_metaline(metaline_candidate):
+            return PlainTextQueue._DUE_MARKER in metaline_candidate \
+                or PlainTextQueue._DONE_MARKER in metaline_candidate
+
+        ret = dict()
+        details = TextFormat.split_first_line(task)
+        ret["header"] = details[0]
+        ret["details"] = ""
+
+        if len(details) == 2 and len(details[1]) > 0:
+            # Strip off metainfo
+
+            ret["details"] = TextFormat.default_multiline_splitter().join(
+                filter(
+                    lambda l: not is_metaline(l),
+                    TextFormat.split_multiline(details[1])
+                )
+            )
+
+        return ret
+
+    @staticmethod
+    def _task_parse_due_date(task):
+        """
+        Extracts due date from a text string
+        """
+        ret = dict()
+        deadline = None
+
+        for line in TextFormat.split_multiline(task):
+            deadline_candidate = DateTime.parse_datetime(line)
+
+            if line.startswith(PlainTextQueue._DUE_MARKER):
+                break
+
+            if deadline_candidate is not None:
+                if deadline is None:
+                    deadline = deadline_candidate
+                elif deadline_candidate < deadline:
+                    deadline = deadline_candidate
+
+        if deadline is not None:
+            ret["due"] = datetime.datetime.strftime(deadline, TIME_FORMAT)
+
+        return ret
+
+    @staticmethod
+    def _task_parse_info(task):
+        details = PlainTextQueue._task_parse_details(task)
+        due = PlainTextQueue._task_parse_due_date(task)
+
+        return dict(
+            **details,
+            **due
+        )
+
+    def save(self, here=False):
+        self._sort()
+
+        if not here:
+            queue_file = PlainTextQueue.QUEUE_FILE
+        else:
+            queue_file = str(Path(".") / "todo.txt")
+
+        serialized = self._as_serialized()
+
+        with open(queue_file, 'w') as f:
+            f.write(serialized)
+
+        # Create a gzipped backup
+        if self.dump:
+            try:
+                os.mkdir(Path(self.queue_dir) / ".tododump")
+            except Exception:
+                pass
+
+            dump_file_path = str((Path(self.queue_dir) / ".tododump" \
+                / DUMP_DURRENT_TIME).resolve()) \
+                + ".txt.gz"
+
+            with open(dump_file_path, "wb+") as f:
+                output = serialized
+                output = output.encode("raw_unicode_escape")
+                output = gzip.compress(output)
+                f.write(output)
+
 
 class Cli:
     TEXT_EDITOR = "vim"
@@ -594,7 +815,7 @@ def main():
     else:
         from_here = False
 
-    q = Queue.load(from_here)
+    q = PlainTextQueue.load(from_here)
 
     if len(sys.argv) >= 3:
         if sys.argv[1] == 'a':  # add
