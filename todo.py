@@ -3,7 +3,6 @@
 
 import sys
 import os
-from tkinter import W
 from simple_term_menu import TerminalMenu
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -210,7 +209,11 @@ class TextFormat:
     @staticmethod
     def split_double_multiline(s):
         assert len(s) > 0
-        return re.split(r'(?:' + TextFormat.get_multiline_splitter(s) + r'){2,}', s, flags=re.MULTILINE)
+        ret = re.split(r'(?:' + TextFormat.get_multiline_splitter(s) +
+                          r'){2,}', s, flags=re.MULTILINE)
+        ret = list(filter(lambda s: len(s) != 0, ret))
+
+        return ret
 
     @staticmethod
     def split_first_line(s):
@@ -339,7 +342,7 @@ class Queue:
 
                 return q
         except Exception as e:
-            Log.error(Queue, "got exception", str(e))
+            Log.error(Queue, f"got exception", str(e))
             return Queue({
                 "todo": [],
                 "done": [],
@@ -409,7 +412,9 @@ class Queue:
     def _task_parse_info(task):
         ret = dict()
 
+        Log.debug("parsing info for task", task)
         deadline = None
+
         for d in map(lambda d: DateTime.parse_datetime(d), TextFormat.split_multiline(task)):
             if d is not None:
                 if deadline is None:
@@ -495,6 +500,7 @@ class Queue:
 
 
 class PlainTextQueue(Queue):
+    QUEUE_FILE = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve() / "todo.txt")
     _DONE_MARKER = "@done"
     _DUE_MARKER = "@due"
 
@@ -502,7 +508,7 @@ class PlainTextQueue(Queue):
     def load(from_here=False):
         # Select working directory
         if not from_here:
-            queue_file = Queue.QUEUE_FILE
+            queue_file = PlainTextQueue.QUEUE_FILE
         else:
             queue_file = str(Path(".").resolve() / "todo.txt")
 
@@ -516,8 +522,8 @@ class PlainTextQueue(Queue):
                 tasks["info"] = dict()
                 all_tasks = TextFormat.split_double_multiline(f.read())
                 all_tasks = list(map(lambda s: s.strip(), all_tasks))
-                print(all_tasks)
 
+                Log.debug("all_tasks", all_tasks)
                 # Separate b/w "todo" and "done" tasks
                 for task in all_tasks:
                     if PlainTextQueue._DONE_MARKER in task:
@@ -549,7 +555,6 @@ class PlainTextQueue(Queue):
         Produces a serialized metainfo for a task
         """
         lines = []
-        print(self.tasks["info"][task])
         lines.append(self.tasks["info"][task]["header"])
         lines.append(self.tasks["info"][task]["details"])
         due = _dict_try_get_value(self.tasks["info"][task], "due")
@@ -585,7 +590,7 @@ class PlainTextQueue(Queue):
         ret["header"] = details[0]
         ret["details"] = ""
 
-        if len(details) == 2:
+        if len(details) == 2 and len(details[1]) > 0:
             # Strip off metainfo
 
             ret["details"] = TextFormat.default_multiline_splitter().join(
@@ -637,7 +642,7 @@ class PlainTextQueue(Queue):
         self._sort()
 
         if not here:
-            queue_file = Queue.QUEUE_FILE
+            queue_file = PlainTextQueue.QUEUE_FILE
         else:
             queue_file = str(Path(".") / "todo.txt")
 
