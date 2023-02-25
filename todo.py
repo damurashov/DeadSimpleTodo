@@ -539,7 +539,7 @@ class PlainTextQueue(Queue):
                 return ret
 
         except Exception as e:
-            Log.error(Queue, "got exception", str(e))
+            Log.error(PlainTextQueue, "got exception", str(e))
 
             return PlainTextQueue(
                 tasks={
@@ -549,6 +549,22 @@ class PlainTextQueue(Queue):
                 },
                 queue_dir=queue_dir
             )
+
+    def _sync_task_info(self, force_update=False):
+        stall_info = []
+        self.tasks["version"] = VERSION
+
+        for k in self.tasks["info"].keys():
+            if k not in self.todo_tasks() and k not in self.done_tasks():
+                stall_info += [k]
+
+        for si in stall_info:
+            self.tasks["info"].pop(si)
+
+        for category in ["todo", "done"]:
+            for t in self.tasks[category]:
+                if t not in self.tasks["info"].keys() or force_update:
+                    self.tasks["info"][t] = PlainTextQueue._task_parse_info(t)
 
     def _serialized_task_info(self, task):
         """
@@ -564,6 +580,8 @@ class PlainTextQueue(Queue):
 
         if task in self.tasks["done"]:
             lines.append("@done")
+
+        lines = list(filter(lambda s: len(s), lines))
 
         return TextFormat.default_multiline_splitter().join(lines)
 
