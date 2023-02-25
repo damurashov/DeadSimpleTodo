@@ -627,7 +627,6 @@ class PlainTextQueue(Queue):
         """
         ret = dict()
         deadline = None
-        print("parsing due date")
 
         for line in TextFormat.split_multiline(task):
             deadline_candidate = DateTime.parse_datetime(line)
